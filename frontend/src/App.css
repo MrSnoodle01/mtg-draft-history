@@ -1,77 +1,65 @@
 .app {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: #0f1115;
-  color: #e6e6e6;
-  font-family: system-ui, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
 }
 
 .header {
   padding: 2rem;
   text-align: center;
-  border-bottom: 1px solid #222;
+  border-bottom: 1px solid var(--border);
 }
 
-.header h1 {
-  margin: 0;
-  font-size: 2.2rem;
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
 }
 
-.header p {
-  color: #a0a0a0;
-  margin-top: 0.5rem;
-}
-
-.main {
-  flex: 1;
-  padding: 2rem;
-  max-width: 1000px;
-  margin: 0 auto;
-  width: 100%;
+.card:hover {
+  background: var(--panel-2);
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
-  margin-top: 1rem;
-}
-
-.card {
-  background: #161a22;
-  border: 1px solid #242a36;
-  border-radius: 12px;
-  padding: 1rem;
-}
-
-.card h2,
-.card h3 {
-  margin-top: 0;
-}
-
-.muted {
-  color: #9aa4b2;
 }
 
 .button {
-  margin-top: 1rem;
-  padding: 0.6rem 1rem;
-  border: none;
-  border-radius: 8px;
-  background: #4f7cff;
+  background: var(--primary);
   color: white;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
   cursor: pointer;
-  transition: 0.2s;
 }
 
 .button:hover {
-  background: #3c66dd;
+  opacity: 0.9;
 }
 
-.footer {
-  text-align: center;
-  padding: 1rem;
-  border-top: 1px solid #222;
-  color: #777;
+input,
+select {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem;
+}
+
+input:focus,
+select:focus {
+  outline: 1px solid var(--primary);
+}
+
+.muted {
+  color: var(--muted);
 }

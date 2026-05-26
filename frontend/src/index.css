@@ -1,3 +1,13 @@
+:root {
+  --bg: #0b0f17;
+  --panel: #121826;
+  --panel-2: #161d2e;
+  --text: #e6e6e6;
+  --muted: #9aa4b2;
+  --border: #232b3d;
+  --primary: #4f7cff;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -6,8 +16,12 @@ html,
 body {
   margin: 0;
   padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, Arial, sans-serif;
 }
 
-button {
-  font-family: inherit;
+a {
+  color: inherit;
+  text-decoration: none;
 }

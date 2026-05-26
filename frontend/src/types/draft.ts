@@ -4,7 +4,7 @@ export type Draft = {
     draftId: string;
     date: string;
     set: string;
-    type: "draft" | "sealed";
+    type: "Draft" | "Sealed";
     format: "Bo1" | "Bo3" | "Bo5";
     location: string;
 }

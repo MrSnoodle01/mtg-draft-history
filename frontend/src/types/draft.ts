@@ -1,10 +1,10 @@
 import { Color } from "./enums";
 
 export type Draft = {
-    draftId: string;
+    draft_id: string;
     date: string;
-    set: string;
-    type: "Draft" | "Sealed";
+    set_name: string;
+    draft_type: "Draft" | "Sealed";
     format: "Bo1" | "Bo3" | "Bo5";
     location: string;
 }

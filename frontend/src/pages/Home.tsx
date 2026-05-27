@@ -1,32 +1,38 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import type { Draft } from "../types/draft";
+import { useEffect, useState } from "react";
+import { getDrafts } from "../services/draftServices";
+import type { Draft } from "../types";
 import CreateDraftForm from "../components/CreateDraftForm";
 
 export default function Home() {
     const [drafts, setDrafts] = useState<Draft[]>([]);
 
-    function handleCreate(draft: Draft) {
-        setDrafts((prev) => [draft, ...prev]);
+    async function loadDrafts() {
+        try {
+            const data = await getDrafts();
+            setDrafts(data || []);
+        } catch (err) {
+            console.error(err);
+        }
     }
+
+    useEffect(() => {
+        loadDrafts();
+    }, []);
 
     return (
         <div className="main">
-            <h1>MTG Draft Tracker</h1>
+            <CreateDraftForm onCreated={loadDrafts} />
 
-            <CreateDraftForm onCreate={handleCreate} />
-
-            <h2 style={{ marginTop: "2rem" }}>Drafts</h2>
-
-            {drafts.map((d) => (
-                <Link key={d.draftId} to={`/draft/${d.draftId}`}>
-                    <div className="card">
-                        <h3>{d.set}</h3>
-                        <p>{d.type} • {d.format}</p>
-                        <p>{d.location}</p>
+            <div className="grid">
+                {drafts.map((d) => (
+                    <div key={d.draft_id} className="card">
+                        <h3>{d.set_name}</h3>
+                        <p>{d.draft_type} • {d.format}</p>
+                        <p>{new Date(d.date).toLocaleDateString()}</p>
+                        <p className="muted">{d.location}</p>
                     </div>
-                </Link>
-            ))}
+                ))}
+            </div>
         </div>
     );
 }

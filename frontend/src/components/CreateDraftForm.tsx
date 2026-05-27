@@ -1,74 +1,85 @@
 import { useState } from "react";
-import type { Draft } from "../types/draft";
+import { createDraft } from "../services/draftServices";
 
 type Props = {
-    onCreate: (draft: Draft) => void;
-};
+    onCreated?: () => void;
+}
 
-export default function CreateDraftForm({ onCreate }: Props) {
-    const [set, setSet] = useState("");
+export default function CreateDraftForm({ onCreated }: Props) {
+    const [setName, setSetName] = useState("");
+    const [date, setDate] = useState("");
     const [type, setType] = useState<"Draft" | "Sealed">("Draft");
     const [format, setFormat] = useState<"Bo1" | "Bo3" | "Bo5">("Bo3");
     const [location, setLocation] = useState("");
-    const [date, setDate] = useState("");
 
-    function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    async function handleCreateDraft(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
-        const newDraft: Draft = {
-            draftId: crypto.randomUUID(),
-            date: new Date().toISOString(),
-            set,
-            type,
-            format,
-            location,
-        };
+        try {
+            await createDraft({
+                draft_id: crypto.randomUUID(),
+                set_name: setName,
+                date,
+                draft_type: type,
+                format,
+                location,
+            });
 
-        onCreate(newDraft);
+            onCreated?.();
 
-        setSet("");
-        setLocation("");
+            setSetName("");
+            setDate("");
+            setLocation("");
+        } catch (err) {
+            console.error(err);
+        }
     }
 
     return (
-        <form className="card form" onSubmit={handleSubmit}>
-            <h2>Create Draft</h2>
+        <div>
+            <h1>MTG Draft Tracker</h1>
 
-            <input
-                placeholder="Set"
-                value={set}
-                onChange={(e) => setSet(e.target.value)}
-                required
-            />
+            <form className="card form" onSubmit={handleCreateDraft}>
+                <h2>Create Draft</h2>
 
-            <select value={type} onChange={(e) => setType(e.target.value as any)}>
-                <option value="Draft">Draft</option>
-                <option value="Sealed">Sealed</option>
-            </select>
+                <input
+                    placeholder="Set name"
+                    value={setName}
+                    onChange={(e) => setSetName(e.target.value)}
+                    required
+                />
 
-            <select value={format} onChange={(e) => setFormat(e.target.value as any)}>
-                <option value="Bo1">Bo1</option>
-                <option value="Bo3">Bo3</option>
-                <option value="Bo5">Bo5</option>
-            </select>
+                <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    required
+                />
 
-            <input
-                placeholder="Location"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                required
-            />
+                <select value={type} onChange={(e) => setType(e.target.value as any)}>
+                    <option value="Draft">Draft</option>
+                    <option value="Sealed">Sealed</option>
+                </select>
 
-            <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-            />
+                <select
+                    value={format}
+                    onChange={(e) => setFormat(e.target.value as any)}
+                >
+                    <option value="Bo3">Bo3</option>
+                    <option value="Bo1">Bo1</option>
+                    <option value="Bo5">Bo5</option>
+                </select>
 
-            <button className="button" type="submit">
-                Create Draft
-            </button>
-        </form>
+                <input
+                    placeholder="Location"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                />
+
+                <button className="button" type="submit">
+                    Create Draft
+                </button>
+            </form>
+        </div>
     );
 }

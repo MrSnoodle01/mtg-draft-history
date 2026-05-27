@@ -17,10 +17,10 @@ export default function DraftDetail() {
     const { draftId } = useParams();
 
     const [draft] = useState<Draft>({
-        draftId: draftId!,
+        draft_id: draftId!,
         date: new Date().toISOString(),
-        set: "Example Set",
-        type: "Draft",
+        set_name: "Example Set",
+        draft_type: "Draft",
         format: "Bo3",
         location: "Test",
     });
@@ -48,8 +48,8 @@ export default function DraftDetail() {
 
     return (
         <div className="main">
-            <h1>{draft.set}</h1>
-            <p>{draft.type} • {draft.format}</p>
+            <h1>{draft.set_name}</h1>
+            <p>{draft.draft_type} • {draft.format}</p>
             <p>{draft.location}</p>
 
             <hr />

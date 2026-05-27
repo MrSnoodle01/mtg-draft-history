@@ -1,88 +1,189 @@
-import { useParams } from "react-router-dom";
-import { useState } from "react";
-
-import type { Draft } from "../types/draft";
-import type { DraftPlayer } from "../types/draft";
-
-type MatchResult = {
-    matchId: string;
-    player1Id: string;
-    player2Id: string;
-    player1GamesWon: number;
-    player2GamesWon: number;
-    round: number;
-};
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { getDraftDetails, createMatch, addPlayerToDraft } from "../services/draftServices";
+import type { Draft } from "../types";
 
 export default function DraftDetail() {
     const { draftId } = useParams();
+    const navigate = useNavigate();
 
-    const [draft] = useState<Draft>({
-        draft_id: draftId!,
-        date: new Date().toISOString(),
-        set_name: "Example Set",
-        draft_type: "Draft",
-        format: "Bo3",
-        location: "Test",
-    });
+    const [newPlayerName, setNewPlayerName] = useState("");
+    const [newPlayerColors, setNewPlayerColors] = useState<string[]>([]);
 
-    const [players] = useState<DraftPlayer[]>([
-        { playerId: "josh", draftId: draftId!, placement: 1, colors: ["W", "U"] },
-        { playerId: "mike", draftId: draftId!, placement: 2, colors: ["R", "G"] },
-    ]);
+    const [player1, setPlayer1] = useState("");
+    const [player2, setPlayer2] = useState("");
+    const [player1Wins, setPlayer1Wins] = useState(0);
+    const [player2Wins, setPlayer2Wins] = useState(0);
+    const [round, setRound] = useState(1);
 
-    const [matches, setMatches] = useState<MatchResult[]>([]);
+    const [draft, setDraft] = useState<Draft | null>(null);
+    const [players, setPlayers] = useState<any[]>([]);
 
-    function addMatch() {
-        setMatches((prev) => [
-            ...prev,
-            {
-                matchId: crypto.randomUUID(),
-                player1Id: "josh",
-                player2Id: "mike",
-                player1GamesWon: 2,
-                player2GamesWon: 1,
-                round: 1,
-            },
-        ]);
+    async function load() {
+        if (!draftId) return;
+
+        try {
+            const data = await getDraftDetails(draftId);
+
+            setDraft(data.draft);
+            setPlayers(data.players);
+        } catch (err) {
+            console.error(err);
+        }
     }
+
+    useEffect(() => {
+        load();
+    }, [draftId]);
+
+    async function handleAddPlayer(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+
+        if (!draftId) return;
+
+        try {
+            await addPlayerToDraft({
+                draft_id: draftId,
+                player_name: newPlayerName,
+                colors: newPlayerColors,
+            });
+
+            setNewPlayerName("");
+            setNewPlayerColors([]);
+
+            load();
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    async function handleAddMatch(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+
+        if (!draftId) return;
+
+        try {
+            await createMatch({
+                draft_id: draftId,
+                player1_id: player1,
+                player2_id: player2,
+                player1_games_won: player1Wins,
+                player2_games_won: player2Wins,
+                round,
+            });
+
+            load();
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    if (!draft) return <p>Loading draft...</p>;
 
     return (
         <div className="main">
+            <button className="button" onClick={() => navigate("/")}>
+                ← Back
+            </button>
             <h1>{draft.set_name}</h1>
             <p>{draft.draft_type} • {draft.format}</p>
-            <p>{draft.location}</p>
+            <p>{new Date(draft.date).toLocaleDateString()}</p>
+            <p className="muted">{draft.location}</p>
 
             <hr />
 
             <h2>Players</h2>
             <div className="grid">
                 {players.map((p) => (
-                    <div key={p.playerId} className="card">
-                        <h3>{p.playerId}</h3>
+                    <div key={p.player_id} className="card">
+                        <h3>{p.player_name}</h3>
                         <p>Placement: {p.placement}</p>
-                        <p>Colors: {p.colors.join(", ")}</p>
+                        <p>Colors: {p.colors?.join(", ")}</p>
                     </div>
                 ))}
             </div>
 
             <hr />
 
-            <h2>Matches</h2>
+            <h3>Add Player</h3>
 
-            <button className="button" onClick={addMatch}>
-                Add Test Match
-            </button>
+            <form className="card form" onSubmit={handleAddPlayer}>
+                <input
+                    placeholder="Player name"
+                    value={newPlayerName}
+                    onChange={(e) => setNewPlayerName(e.target.value)}
+                    required
+                />
 
-            <div className="grid" style={{ marginTop: "1rem" }}>
-                {matches.map((m) => (
-                    <div key={m.matchId} className="card">
-                        <p>
-                            {m.player1Id} ({m.player1GamesWon}) vs {m.player2Id} ({m.player2GamesWon})
-                        </p>
-                        <p>Round {m.round}</p>
-                    </div>
-                ))}
-            </div>
+                <input
+                    placeholder="Colors (comma separated, e.g. W,U)"
+                    value={newPlayerColors.join(",")}
+                    onChange={(e) =>
+                        setNewPlayerColors(
+                            e.target.value.split(",").map((c) => c.trim())
+                        )
+                    }
+                />
+
+                <button className="button" type="submit">
+                    Add Player
+                </button>
+            </form>
+
+            <h3>Add Match</h3>
+
+            <form className="card form" onSubmit={handleAddMatch}>
+                <select
+                    value={player1}
+                    onChange={(e) => setPlayer1(e.target.value)}
+                    required
+                >
+                    <option value="">Select Player 1</option>
+                    {players.map((p) => (
+                        <option key={p.player_id} value={p.player_name}>
+                            {p.player_name}
+                        </option>
+                    ))}
+                </select>
+
+                <select
+                    value={player2}
+                    onChange={(e) => setPlayer2(e.target.value)}
+                    required
+                >
+                    <option value="">Select Player 2</option>
+                    {players.map((p) => (
+                        <option key={p.player_id} value={p.player_name}>
+                            {p.player_name}
+                        </option>
+                    ))}
+                </select>
+
+                <input
+                    type="number"
+                    placeholder="P1 Wins"
+                    value={player1Wins}
+                    onChange={(e) => setPlayer1Wins(Number(e.target.value))}
+                />
+
+                <input
+                    type="number"
+                    placeholder="P2 Wins"
+                    value={player2Wins}
+                    onChange={(e) => setPlayer2Wins(Number(e.target.value))}
+                />
+
+                <input
+                    type="number"
+                    placeholder="Round"
+                    value={round}
+                    onChange={(e) => setRound(Number(e.target.value))}
+                />
+
+                <button className="button" type="submit">
+                    Add Match
+                </button>
+            </form>
         </div>
     );
 }

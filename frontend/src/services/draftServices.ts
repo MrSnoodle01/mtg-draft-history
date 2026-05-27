@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import type { Draft } from "../types";
 
 export type CreateDraftInput = {
     draft_id: string;
@@ -20,6 +21,73 @@ export async function getDrafts() {
     return data;
 }
 
+export async function getDraftById(id: string): Promise<Draft | null> {
+    const { data, error } = await supabase
+        .from("drafts")
+        .select("*")
+        .eq("draft_id", id)
+        .maybeSingle();
+
+    if (error) {
+        console.error(error);
+        return null;
+    }
+
+    return data;
+}
+
+export async function getDraftDetails(draftId: string) {
+    const [draftRes, playersRes, matchesRes] = await Promise.all([
+        supabase
+            .from("drafts")
+            .select("*")
+            .eq("draft_id", draftId)
+            .single(),
+
+        supabase
+            .from("draft_players")
+            .select("*")
+            .eq("draft_id", draftId),
+
+        supabase
+            .from("matches")
+            .select("*")
+            .eq("draft_id", draftId),
+    ]);
+
+
+    if (draftRes.error) throw draftRes.error;
+    if (playersRes.error) throw playersRes.error;
+    if (matchesRes.error) throw matchesRes.error;
+
+    return {
+        draft: draftRes.data as Draft | null,
+        players: playersRes.data || [],
+        matches: matchesRes.data || [],
+    };
+}
+
+export async function createMatch(match: {
+    draft_id: string;
+    player1_id: string;
+    player2_id: string;
+    player1_games_won: number;
+    player2_games_won: number;
+    round: number;
+    winner_id?: string;
+}) {
+    const { data, error } = await supabase
+        .from("matches")
+        .insert([match])
+        .select();
+
+    if (error) {
+        throw error;
+    }
+
+    return data;
+}
+
 export async function createDraft(input: CreateDraftInput) {
     const { error } = await supabase.from("drafts").insert([input]);
 
@@ -35,4 +103,28 @@ export async function deleteDraft(draft_id: string) {
     if (error) {
         throw error;
     }
+}
+
+export async function addPlayerToDraft(input: {
+    draft_id: string;
+    player_name: string;
+    colors: string[];
+}) {
+    const { data, error } = await supabase
+        .from("draft_players")
+        .insert([
+            {
+                draft_id: input.draft_id,
+                player_name: input.player_name,
+                colors: input.colors,
+                placement: 0,
+            },
+        ])
+        .select();
+
+    if (error) {
+        throw error;
+    }
+
+    return data;
 }

@@ -1,12 +1,12 @@
 export type MatchResult = {
-    matchId: string;
-    draftId: string;
-    player1Id: string;
-    player2Id: string;
+    match_id: string;
+    draft_id: string;
+    player1_id: string;
+    player2_id: string;
 
-    player1GamesWon: number;
-    player2GamesWon: number;
+    player1_games_won: number;
+    player2_games_won: number;
 
     round: number;
-    winnerId?: string; // undefined = draw
+    winner_id?: string; // undefined = draw
 }

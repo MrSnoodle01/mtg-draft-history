@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { getDrafts, deleteDraft } from "../services/draftServices";
+import { useNavigate } from "react-router-dom";
 import type { Draft } from "../types";
 import CreateDraftForm from "../components/CreateDraftForm";
 
 export default function Home() {
     const [drafts, setDrafts] = useState<Draft[]>([]);
+    const navigate = useNavigate();
 
     async function loadDrafts() {
         try {
@@ -34,7 +36,12 @@ export default function Home() {
 
             <div className="grid">
                 {drafts.map((d) => (
-                    <div key={d.draft_id} className="card">
+                    <div
+                        key={d.draft_id}
+                        className="card"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => navigate(`/draft/${d.draft_id}`)}
+                    >
                         <h3>{d.set_name}</h3>
                         <p>{d.draft_type} • {d.format}</p>
                         <p>{new Date(d.date).toLocaleDateString()}</p>

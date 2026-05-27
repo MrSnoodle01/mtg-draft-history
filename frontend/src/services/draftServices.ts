@@ -25,3 +25,14 @@ export async function createDraft(input: CreateDraftInput) {
 
     if (error) throw error;
 }
+
+export async function deleteDraft(draft_id: string) {
+    const { error } = await supabase
+        .from("drafts")
+        .delete()
+        .eq("draft_id", draft_id)
+
+    if (error) {
+        throw error;
+    }
+}

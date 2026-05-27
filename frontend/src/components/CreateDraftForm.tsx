@@ -74,6 +74,7 @@ export default function CreateDraftForm({ onCreated }: Props) {
                     placeholder="Location"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
+                    required
                 />
 
                 <button className="button" type="submit">

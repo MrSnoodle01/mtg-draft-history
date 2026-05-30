@@ -226,3 +226,32 @@ export async function getPlayerNameFromId(playerId: string) {
 
     return data.player_name;
 }
+
+export async function getPlayerWinCountForDraft(draftId: string, playerId: string, round: number) {
+    const { data, error } = await supabase
+        .from("matches")
+        .select("winner_id")
+        .eq("draft_id", draftId)
+        .eq("winner_id", playerId)
+        .lt("round", round)
+
+    if (error) {
+        throw error;
+    }
+
+    return data.length;
+}
+
+export async function getNumberOfRoundsPlayed(playerId: string, draftId: string) {
+    const { data, error } = await supabase
+        .from("matches")
+        .select("*")
+        .eq("draft_id", draftId)
+        .or(`player1_id.eq.${playerId}, player2_id.eq.${playerId}`)
+
+    if (error) {
+        throw error;
+    }
+
+    return data.length;
+}   

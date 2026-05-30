@@ -1,5 +1,5 @@
 import type { MatchResult } from "../types"
-import { getPlayerNameFromId, deleteMatch, updateMatch } from "../services/draftServices"
+import { getPlayerNameFromId, deleteMatch, updateMatch, getPlayerWinCountForDraft } from "../services/draftServices"
 import { useState, useEffect } from "react";
 
 type Props = {
@@ -10,18 +10,28 @@ type Props = {
 export default function ViewMatch({ m, load }: Props) {
     const [player1Name, setPlayer1Name] = useState("");
     const [player2Name, setPlayer2Name] = useState("");
+    const [player1CurrWins, setPlayer1CurrWins] = useState(0);
+    const [player2CurrWins, setPlayer2CurrWins] = useState(0);
+    const [player1CurrLosses, setPlayer1CurrLosses] = useState(0);
+    const [player2CurrLosses, setPlayer2CurrLosses] = useState(0);
 
     useEffect(() => {
-        async function fetchNames() {
+        async function fetchData() {
             const p1 = await getPlayerNameFromId(m.player1_id);
             const p2 = await getPlayerNameFromId(m.player2_id);
+            const p1Wins = await getPlayerWinCountForDraft(m.draft_id, m.player1_id, m.round);
+            const p2Wins = await getPlayerWinCountForDraft(m.draft_id, m.player2_id, m.round);
 
             setPlayer1Name(p1);
             setPlayer2Name(p2);
+            setPlayer1CurrWins(p1Wins);
+            setPlayer2CurrWins(p2Wins);
+            setPlayer1CurrLosses(m.round - p1Wins - 1);
+            setPlayer2CurrLosses(m.round - p2Wins - 1);
         }
 
-        fetchNames();
-    }, [m.player1_id, m.player2_id]);
+        fetchData();
+    }, [m.player1_id, m.player2_id, m.player1_games_won, m.player2_games_won]);
 
     async function handleDeleteMatch(matchId: string) {
         if (!confirm("Delete this Match?")) return;
@@ -36,15 +46,12 @@ export default function ViewMatch({ m, load }: Props) {
 
     async function handleEditMatch(match: any) {
         const newP1GamesWon = Number(prompt("Player 1 games won: ", match.player1_games_won));
-
         if (!newP1GamesWon && newP1GamesWon != 0) return;
 
         const newP2GamesWon = Number(prompt("Player 2 games won: ", match.player2_games_won));
-
         if (!newP2GamesWon && newP2GamesWon != 0) return;
 
         const newRound = prompt("New Round: ", match.round);
-
         if (!newRound) return;
 
         try {
@@ -62,8 +69,7 @@ export default function ViewMatch({ m, load }: Props) {
 
     return (
         <div key={m.match_id} className="card">
-            {/* TODO: have match wins next to player name */}
-            <h2>Round: {m.round} {player1Name} vs {player2Name}</h2>
+            <h2>Round {m.round}: {player1Name}({player1CurrWins}-{player1CurrLosses}) vs {player2Name}({player2CurrWins}-{player2CurrLosses})</h2>
             {m.player1_games_won > m.player2_games_won
                 ?
                 <h3>{player1Name} defeats {player2Name} {m.player1_games_won} - {m.player2_games_won}</h3>

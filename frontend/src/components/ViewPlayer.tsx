@@ -1,5 +1,7 @@
-import { updatePlayer, deletePlayer } from "../services/draftServices";
+import { updatePlayer, deletePlayer, getNumberOfRoundsPlayed } from "../services/draftServices";
 import type { DraftPlayer } from "../types";
+import { useEffect, useState } from "react";
+import { getPlayerWinCountForDraft } from "../services/draftServices";
 
 type Props = {
     p: DraftPlayer,
@@ -7,6 +9,20 @@ type Props = {
 }
 
 export default function Player({ p, load }: Props) {
+    const [playerWins, setPlayerWins] = useState(0);
+    const [playerLosses, setPlayerLosses] = useState(0);
+
+    useEffect(() => {
+        async function fetchData() {
+            const roundsPlayed = await getNumberOfRoundsPlayed(p.player_id, p.draft_id);
+            const p1Wins = await getPlayerWinCountForDraft(p.draft_id, p.player_id, roundsPlayed + 1);
+
+            setPlayerWins(p1Wins);
+            setPlayerLosses(roundsPlayed - p1Wins);
+        }
+
+        fetchData();
+    })
 
     async function handleDeletePlayer(playerId: string) {
         if (!confirm("Delete this player?")) return;
@@ -45,8 +61,7 @@ export default function Player({ p, load }: Props) {
 
     return (
         <div key={p.player_id} className="card">
-            <h3>{p.player_name}</h3>
-            <p>Placement: {p.placement}</p>
+            <h3>{p.player_name}({playerWins} - {playerLosses})</h3>
             <p>Colors: {p.colors?.join(", ")}</p>
 
             <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>

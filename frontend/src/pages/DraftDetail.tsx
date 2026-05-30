@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getDraftDetails, createMatch, addPlayerToDraft, updatePlayer, deletePlayer } from "../services/draftServices";
-import Player from "../components/Player";
+import { getDraftDetails, addPlayerToDraft } from "../services/draftServices";
+import Player from "../components/ViewPlayer";
+import AddMatch from "./AddMatch";
+import ViewMatch from "../components/ViewMatch";
 import type { Draft } from "../types";
 
 export default function DraftDetail() {
@@ -11,14 +13,9 @@ export default function DraftDetail() {
     const [newPlayerName, setNewPlayerName] = useState("");
     const [newPlayerColors, setNewPlayerColors] = useState<string[]>([]);
 
-    const [player1, setPlayer1] = useState("");
-    const [player2, setPlayer2] = useState("");
-    const [player1Wins, setPlayer1Wins] = useState(0);
-    const [player2Wins, setPlayer2Wins] = useState(0);
-    const [round, setRound] = useState(1);
-
     const [draft, setDraft] = useState<Draft | null>(null);
     const [players, setPlayers] = useState<any[]>([]);
+    const [matches, setMatches] = useState<any[]>([]);
 
     useEffect(() => {
         load();
@@ -32,6 +29,7 @@ export default function DraftDetail() {
 
             setDraft(data.draft);
             setPlayers(data.players);
+            setMatches(data.matches);
         } catch (err) {
             console.error(err);
         }
@@ -51,27 +49,6 @@ export default function DraftDetail() {
 
             setNewPlayerName("");
             setNewPlayerColors([]);
-
-            load();
-        } catch (err) {
-            console.error(err);
-        }
-    }
-
-    async function handleAddMatch(e: React.FormEvent<HTMLFormElement>) {
-        e.preventDefault();
-
-        if (!draftId) return;
-
-        try {
-            await createMatch({
-                draft_id: draftId,
-                player1_id: player1,
-                player2_id: player2,
-                player1_games_won: player1Wins,
-                player2_games_won: player2Wins,
-                round,
-            });
 
             load();
         } catch (err) {
@@ -127,60 +104,15 @@ export default function DraftDetail() {
                 </button>
             </form>
 
-            <h3>Add Match</h3>
+            <AddMatch players={players} load={() => load()} />
 
-            <form className="card form" onSubmit={handleAddMatch}>
-                <select
-                    value={player1}
-                    onChange={(e) => setPlayer1(e.target.value)}
-                    required
-                >
-                    <option value="">Select Player 1</option>
-                    {players.map((p) => (
-                        <option key={p.player_id} value={p.player_name}>
-                            {p.player_name}
-                        </option>
-                    ))}
-                </select>
+            <h3>Matches</h3>
 
-                <select
-                    value={player2}
-                    onChange={(e) => setPlayer2(e.target.value)}
-                    required
-                >
-                    <option value="">Select Player 2</option>
-                    {players.map((p) => (
-                        <option key={p.player_id} value={p.player_name}>
-                            {p.player_name}
-                        </option>
-                    ))}
-                </select>
-
-                <input
-                    type="number"
-                    placeholder="P1 Wins"
-                    value={player1Wins}
-                    onChange={(e) => setPlayer1Wins(Number(e.target.value))}
-                />
-
-                <input
-                    type="number"
-                    placeholder="P2 Wins"
-                    value={player2Wins}
-                    onChange={(e) => setPlayer2Wins(Number(e.target.value))}
-                />
-
-                <input
-                    type="number"
-                    placeholder="Round"
-                    value={round}
-                    onChange={(e) => setRound(Number(e.target.value))}
-                />
-
-                <button className="button" type="submit">
-                    Add Match
-                </button>
-            </form>
+            <div className="grid">
+                {matches.map((m) => (
+                    <ViewMatch m={m} load={() => load()} />
+                ))}
+            </div>
         </div>
     );
 }

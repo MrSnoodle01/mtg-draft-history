@@ -88,6 +88,38 @@ export async function createMatch(match: {
     return data;
 }
 
+export async function updateMatch(
+    matchId: string,
+    updates: {
+        draft_id: string;
+        player1_id: string;
+        player2_id: string;
+        player1_games_won: number;
+        player2_games_won: number;
+        round: number;
+        winner_id?: string;
+    }) {
+    const { data, error } = await supabase
+        .from("matches")
+        .update(updates)
+        .eq("match_id", matchId)
+        .select()
+        .single()
+
+    if (error) throw error;
+
+    return data;
+}
+
+export async function deleteMatch(matchId: string) {
+    const { error } = await supabase
+        .from("matches")
+        .delete()
+        .eq("match_id", matchId)
+
+    if (error) throw error;
+}
+
 export async function createDraft(input: CreateDraftInput) {
     const { error } = await supabase.from("drafts").insert([input]);
 
@@ -156,4 +188,41 @@ export async function updatePlayer(
     if (error) throw error;
 
     return data;
+}
+
+export async function getPlayerIdFromNameAndDraft(playerName: string, draftId: string) {
+    const { data, error } = await supabase
+        .from("draft_players")
+        .select("player_id")
+        .eq("draft_id", draftId)
+        .eq("player_name", playerName)
+        .single()
+
+    if (error) {
+        throw error;
+    }
+
+    if (!data) {
+        throw new Error(`No player found for ${playerName}`);
+    }
+
+    return data.player_id;
+}
+
+export async function getPlayerNameFromId(playerId: string) {
+    const { data, error } = await supabase
+        .from("draft_players")
+        .select("player_name")
+        .eq("player_id", playerId)
+        .single()
+
+    if (error) {
+        throw error;
+    }
+
+    if (!data) {
+        throw new Error(`No player found for ${playerId}`)
+    }
+
+    return data.player_name;
 }

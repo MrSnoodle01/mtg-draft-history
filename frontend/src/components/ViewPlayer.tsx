@@ -60,6 +60,7 @@ export default function Player({ p, load }: Props) {
                 <button
                     className="button"
                     onClick={() => handleDeletePlayer(p.player_id)}
+                    style={{ background: "#c0392b" }}
                 >
                     Delete
                 </button>

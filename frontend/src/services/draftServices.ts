@@ -128,3 +128,32 @@ export async function addPlayerToDraft(input: {
 
     return data;
 }
+
+export async function deletePlayer(playerId: string) {
+    const { error } = await supabase
+        .from("draft_players")
+        .delete()
+        .eq("player_id", playerId)
+
+    if (error) throw error;
+}
+
+export async function updatePlayer(
+    playerId: string,
+    updates: {
+        player_name?: string;
+        colors?: string[];
+        placement?: number;
+    }
+) {
+    const { data, error } = await supabase
+        .from("draft_players")
+        .update(updates)
+        .eq("player_id", playerId)
+        .select()
+        .single()
+
+    if (error) throw error;
+
+    return data;
+}

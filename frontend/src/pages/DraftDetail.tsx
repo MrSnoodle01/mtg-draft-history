@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getDraftDetails, createMatch, addPlayerToDraft } from "../services/draftServices";
+import { getDraftDetails, createMatch, addPlayerToDraft, updatePlayer, deletePlayer } from "../services/draftServices";
+import Player from "../components/Player";
 import type { Draft } from "../types";
 
 export default function DraftDetail() {
@@ -19,6 +20,10 @@ export default function DraftDetail() {
     const [draft, setDraft] = useState<Draft | null>(null);
     const [players, setPlayers] = useState<any[]>([]);
 
+    useEffect(() => {
+        load();
+    }, [draftId]);
+
     async function load() {
         if (!draftId) return;
 
@@ -31,10 +36,6 @@ export default function DraftDetail() {
             console.error(err);
         }
     }
-
-    useEffect(() => {
-        load();
-    }, [draftId]);
 
     async function handleAddPlayer(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -95,11 +96,7 @@ export default function DraftDetail() {
             <h2>Players</h2>
             <div className="grid">
                 {players.map((p) => (
-                    <div key={p.player_id} className="card">
-                        <h3>{p.player_name}</h3>
-                        <p>Placement: {p.placement}</p>
-                        <p>Colors: {p.colors?.join(", ")}</p>
-                    </div>
+                    <Player p={p} load={() => load()} />
                 ))}
             </div>
 

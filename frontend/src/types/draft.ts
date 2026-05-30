@@ -10,8 +10,9 @@ export type Draft = {
 }
 
 export type DraftPlayer = {
-    playerId: string;
-    draftId: string;
+    player_name: string;
+    player_id: string;
+    draft_id: string;
     placement: number;
     colors: Color[];
 }

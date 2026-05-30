@@ -47,11 +47,12 @@ export default function Home() {
                         <p>{new Date(d.date).toLocaleDateString()}</p>
                         <p className="muted">{d.location}</p>
 
-
-                        {/* TODO: when clicking delete button, it tries to take you to the newly deleted draft */}
                         <button
                             className="button"
-                            onClick={() => handleDelete(d.draft_id)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(d.draft_id)
+                            }}
                             style={{ marginTop: "10px", background: "#c0392b" }}
                         >
                             Delete

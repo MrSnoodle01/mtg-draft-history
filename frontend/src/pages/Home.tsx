@@ -32,6 +32,15 @@ export default function Home() {
 
     return (
         <div className="main">
+            <h1>MTG Draft Tracker</h1>
+
+            <button
+                className="button"
+                onClick={() => navigate(`/playerStats`)}
+            >
+                View Player Stats
+            </button>
+
             <CreateDraftForm onCreated={loadDrafts} />
 
             <div className="grid">

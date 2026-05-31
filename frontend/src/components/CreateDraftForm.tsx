@@ -37,8 +37,6 @@ export default function CreateDraftForm({ onCreated }: Props) {
 
     return (
         <div>
-            <h1>MTG Draft Tracker</h1>
-
             <form className="card form" onSubmit={handleCreateDraft}>
                 <h2>Create Draft</h2>
 

@@ -21,6 +21,8 @@ type PlayerStat = {
     gamesWon: number;
     gamesLost: number;
     gameWinRate: number;
+
+    headToHead: Record<string, { wins: number; losses: number }>;
 };
 
 export async function getDrafts() {
@@ -333,6 +335,10 @@ export async function getPlayerStats(): Promise<PlayerStat[]> {
         .from("draft_players")
         .select("*");
 
+    const playerMap = new Map(
+        (players ?? []).map(p => [p.id, p.name])
+    );
+
     return (players ?? []).map(player => {
         const playerMatches = matches?.filter(
             m => m.player1_id === player.id || m.player2_id === player.id
@@ -346,8 +352,24 @@ export async function getPlayerStats(): Promise<PlayerStat[]> {
 
         let gamesWon = 0;
         let gamesLost = 0;
+        const headToHead: Record<string, { wins: number; losses: number }> = {};
 
-        playerMatches.forEach(match => {
+        playerMatches.forEach((match) => {
+            const opponentId =
+                match.player1_id === player.id
+                    ? match.player2_id
+                    : match.player1_id;
+
+            if (!headToHead[opponentId]) {
+                headToHead[opponentId] = { wins: 0, losses: 0 };
+            }
+
+            if (match.winner_id === player.id) {
+                headToHead[opponentId].wins += 1;
+            } else {
+                headToHead[opponentId].losses += 1;
+            }
+
             if (match.player1_id === player.id) {
                 gamesWon += match.player1_games_won;
                 gamesLost += match.player2_games_won;
@@ -355,6 +377,14 @@ export async function getPlayerStats(): Promise<PlayerStat[]> {
                 gamesWon += match.player2_games_won;
                 gamesLost += match.player1_games_won;
             }
+        });
+
+        const headToHeadNamed: Record<string, { wins: number; losses: number }> = {};
+
+        Object.entries(headToHead).forEach(([opponentId, record]) => {
+            const name = playerMap.get(opponentId) ?? "Unknown";
+
+            headToHeadNamed[name] = record;
         });
 
         const drafts = new Set(
@@ -380,6 +410,7 @@ export async function getPlayerStats(): Promise<PlayerStat[]> {
                 gamesWon + gamesLost > 0
                     ? (gamesWon / (gamesWon + gamesLost)) * 100
                     : 0,
+            headToHead: headToHeadNamed,
         };
     });
 }

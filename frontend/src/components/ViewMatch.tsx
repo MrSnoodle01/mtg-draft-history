@@ -45,13 +45,13 @@ export default function ViewMatch({ m, load }: Props) {
     }
 
     async function handleEditMatch(match: any) {
-        const newP1GamesWon = Number(prompt("Player 1 games won: ", match.player1_games_won));
+        const newP1GamesWon = Number(prompt(`${player1Name} games won: `, match.player1_games_won));
         if (!newP1GamesWon && newP1GamesWon != 0) return;
 
-        const newP2GamesWon = Number(prompt("Player 2 games won: ", match.player2_games_won));
+        const newP2GamesWon = Number(prompt(`${player2Name} games won: `, match.player2_games_won));
         if (!newP2GamesWon && newP2GamesWon != 0) return;
 
-        const newRound = prompt("New Round: ", match.round);
+        const newRound = prompt("Round number: ", match.round);
         if (!newRound) return;
 
         try {

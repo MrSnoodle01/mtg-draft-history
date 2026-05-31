@@ -63,3 +63,14 @@ select:focus {
 .muted {
   color: var(--muted);
 }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.field label {
+  font-size: 0.9rem;
+  color: var(--muted);
+}

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getDraftDetails, addPlayerToDraft } from "../services/draftServices";
 import Player from "../components/ViewPlayer";
-import AddMatch from "./AddMatch";
+import AddMatch from "../components/AddMatch";
 import ViewMatch from "../components/ViewMatch";
 import type { Draft } from "../types";
 
@@ -109,7 +109,7 @@ export default function DraftDetail() {
             <h3>Matches</h3>
 
             <div className="grid">
-                {matches.map((m) => (
+                {matches.sort((a, b) => a.round - b.round).map((m) => (
                     <ViewMatch m={m} load={() => load()} />
                 ))}
             </div>

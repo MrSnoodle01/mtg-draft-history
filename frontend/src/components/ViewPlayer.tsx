@@ -61,7 +61,7 @@ export default function Player({ p, load }: Props) {
 
     return (
         <div key={p.player_id} className="card">
-            <h3>{p.player_name}({playerWins} - {playerLosses})</h3>
+            <h3>{p.player_name}({playerWins}-{playerLosses})</h3>
             <p>Colors: {p.colors?.join(", ")}</p>
 
             <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>

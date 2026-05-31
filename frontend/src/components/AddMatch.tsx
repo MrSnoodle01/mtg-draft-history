@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { createMatch, getPlayerIdFromNameAndDraft } from "../services/draftServices";
+import type { DraftPlayer } from "../types";
+
 
 type Props = {
-    players: any[],
+    players: DraftPlayer[],
     load: () => void,
 }
 
@@ -57,8 +59,8 @@ export default function AddMatch({ players, load }: Props) {
                     >
                         <option value="">Select Player 1</option>
                         {players.map((p) => (
-                            <option key={p.player_id} value={p.player_name}>
-                                {p.player_name}
+                            <option key={p.player_id} value={p.players.name}>
+                                {p.players.name}
                             </option>
                         ))}
                     </select>
@@ -74,8 +76,8 @@ export default function AddMatch({ players, load }: Props) {
                     >
                         <option value="">Select Player 2</option>
                         {players.map((p) => (
-                            <option key={p.player_id} value={p.player_name}>
-                                {p.player_name}
+                            <option key={p.player_id} value={p.players.name}>
+                                {p.players.name}
                             </option>
                         ))}
                     </select>

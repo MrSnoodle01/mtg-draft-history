@@ -10,6 +10,19 @@ export type CreateDraftInput = {
     location: string;
 };
 
+type PlayerStat = {
+    id: string;
+    name: string;
+    drafts: number;
+    matches: number;
+    matchWins: number;
+    matchLosses: number;
+    winRate: number;
+    gamesWon: number;
+    gamesLost: number;
+    gameWinRate: number;
+};
+
 export async function getDrafts() {
     const { data, error } = await supabase
         .from("drafts")
@@ -65,8 +78,6 @@ export async function getDraftDetails(draftId: string) {
     if (draftRes.error) throw draftRes.error;
     if (playersRes.error) throw playersRes.error;
     if (matchesRes.error) throw matchesRes.error;
-
-    console.log("data", playersRes.data);
 
     return {
         draft: draftRes.data as Draft | null,
@@ -307,4 +318,68 @@ export async function getNumberOfRoundsPlayed(playerId: string, draftId: string)
     }
 
     return data.length;
-}   
+}
+
+export async function getPlayerStats(): Promise<PlayerStat[]> {
+    const { data: players } = await supabase
+        .from("players")
+        .select("*");
+
+    const { data: matches } = await supabase
+        .from("matches")
+        .select("*");
+
+    const { data: draftPlayers } = await supabase
+        .from("draft_players")
+        .select("*");
+
+    return (players ?? []).map(player => {
+        const playerMatches = matches?.filter(
+            m => m.player1_id === player.id || m.player2_id === player.id
+        ) ?? [];
+
+        const matchWins = playerMatches.filter(
+            m => m.winner_id === player.id
+        ).length;
+
+        const matchLosses = playerMatches.length - matchWins;
+
+        let gamesWon = 0;
+        let gamesLost = 0;
+
+        playerMatches.forEach(match => {
+            if (match.player1_id === player.id) {
+                gamesWon += match.player1_games_won;
+                gamesLost += match.player2_games_won;
+            } else {
+                gamesWon += match.player2_games_won;
+                gamesLost += match.player1_games_won;
+            }
+        });
+
+        const drafts = new Set(
+            (draftPlayers ?? [])
+                .filter(dp => dp.player_id === player.id)
+                .map(dp => dp.draft_id)
+        ).size;
+
+        return {
+            id: player.id,
+            name: player.name,
+            drafts,
+            matches: playerMatches.length,
+            matchWins,
+            matchLosses,
+            winRate:
+                playerMatches.length > 0
+                    ? (matchWins / playerMatches.length) * 100
+                    : 0,
+            gamesWon,
+            gamesLost,
+            gameWinRate:
+                gamesWon + gamesLost > 0
+                    ? (gamesWon / (gamesWon + gamesLost)) * 100
+                    : 0,
+        };
+    });
+}

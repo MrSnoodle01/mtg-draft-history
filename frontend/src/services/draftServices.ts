@@ -46,7 +46,13 @@ export async function getDraftDetails(draftId: string) {
 
         supabase
             .from("draft_players")
-            .select("*")
+            .select(`
+                *,
+                players (
+                    id,
+                    name
+                )
+            `)
             .eq("draft_id", draftId),
 
         supabase
@@ -59,6 +65,8 @@ export async function getDraftDetails(draftId: string) {
     if (draftRes.error) throw draftRes.error;
     if (playersRes.error) throw playersRes.error;
     if (matchesRes.error) throw matchesRes.error;
+
+    console.log("data", playersRes.data);
 
     return {
         draft: draftRes.data as Draft | null,
@@ -142,21 +150,37 @@ export async function addPlayerToDraft(input: {
     player_name: string;
     colors: string[];
 }) {
+    // Check if player already exists
+    let { data: player } = await supabase
+        .from("players")
+        .select("*")
+        .eq("name", input.player_name)
+        .single();
+
+    // Create player if not found
+    if (!player) {
+        const { data: newPlayer, error } = await supabase
+            .from("players")
+            .insert({ name: input.player_name })
+            .select("*")
+            .single();
+
+        if (error) throw error;
+
+        player = newPlayer;
+    }
+
     const { data, error } = await supabase
         .from("draft_players")
-        .insert([
-            {
-                draft_id: input.draft_id,
-                player_name: input.player_name,
-                colors: input.colors,
-                placement: 0,
-            },
-        ])
+        .insert({
+            draft_id: input.draft_id,
+            player_id: player.id,
+            colors: input.colors,
+            placement: 0,
+        })
         .select();
 
-    if (error) {
-        throw error;
-    }
+    if (error) throw error;
 
     return data;
 }
@@ -172,59 +196,88 @@ export async function deletePlayer(playerId: string) {
 
 export async function updatePlayer(
     playerId: string,
+    draftId: string,
     updates: {
         player_name?: string;
         colors?: string[];
-        placement?: number;
     }
 ) {
+    const updateData: {
+        player_id?: string;
+        colors?: string[];
+    } = {};
+
+    if (updates.player_name) {
+        // Try to find existing player
+        let { data: player } = await supabase
+            .from("players")
+            .select("id")
+            .eq("name", updates.player_name)
+            .single();
+
+        // Create player if it doesn't exist
+        if (!player) {
+            const { data: newPlayer, error } = await supabase
+                .from("players")
+                .insert({ name: updates.player_name })
+                .select("id")
+                .single();
+
+            if (error) throw error;
+
+            player = newPlayer;
+        }
+
+        updateData.player_id = player.id;
+    }
+
+    if (updates.colors) {
+        updateData.colors = updates.colors;
+    }
+
     const { data, error } = await supabase
         .from("draft_players")
-        .update(updates)
+        .update(updateData)
         .eq("player_id", playerId)
+        .eq("draft_id", draftId)
         .select()
-        .single()
+        .single();
 
     if (error) throw error;
 
     return data;
 }
-
-export async function getPlayerIdFromNameAndDraft(playerName: string, draftId: string) {
+export async function getPlayerIdFromNameAndDraft(
+    playerName: string,
+    draftId: string
+) {
     const { data, error } = await supabase
         .from("draft_players")
-        .select("player_id")
+        .select(`
+            player_id,
+            players!inner (
+                name
+            )
+        `)
         .eq("draft_id", draftId)
-        .eq("player_name", playerName)
-        .single()
+        .eq("players.name", playerName)
+        .single();
 
-    if (error) {
-        throw error;
-    }
-
-    if (!data) {
-        throw new Error(`No player found for ${playerName}`);
-    }
+    if (error) throw error;
 
     return data.player_id;
 }
 
 export async function getPlayerNameFromId(playerId: string) {
     const { data, error } = await supabase
-        .from("draft_players")
-        .select("player_name")
-        .eq("player_id", playerId)
-        .single()
+        .from("players")
+        .select("name")
+        .eq("id", playerId)
+        .single();
 
-    if (error) {
-        throw error;
-    }
+    if (error) throw error;
 
-    if (!data) {
-        throw new Error(`No player found for ${playerId}`)
-    }
-
-    return data.player_name;
+    return data.name;
 }
 
 export async function getPlayerWinCountForDraft(draftId: string, playerId: string, round: number) {

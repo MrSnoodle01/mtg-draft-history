@@ -36,7 +36,7 @@ export default function Player({ p, load }: Props) {
     }
 
     async function handleEditPlayer(player: any) {
-        const newName = prompt("Player name: ", player.player_name);
+        const newName = prompt("Player name: ", player.players.name);
 
         if (!newName) return;
 
@@ -48,7 +48,7 @@ export default function Player({ p, load }: Props) {
         const colors = colorsInput ? colorsInput.split(",").map((c) => c.trim()) : [];
 
         try {
-            await updatePlayer(player.player_id, {
+            await updatePlayer(player.player_id, player.draft_id, {
                 player_name: newName,
                 colors,
             });
@@ -61,7 +61,7 @@ export default function Player({ p, load }: Props) {
 
     return (
         <div key={p.player_id} className="card">
-            <h3>{p.player_name}({playerWins}-{playerLosses})</h3>
+            <h3>{p.players.name}({playerWins}-{playerLosses})</h3>
             <p>Colors: {p.colors?.join(", ")}</p>
 
             <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>

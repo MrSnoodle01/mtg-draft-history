@@ -38,14 +38,16 @@ export default function Home() {
         <div className="main">
             <h1>MTG Draft Tracker</h1>
 
-            <button
-                className="button"
-                onClick={() => navigate(`/playerStats`)}
-            >
-                View Player Stats
-            </button>
+            <div className="nav">
+                <button
+                    className="button"
+                    onClick={() => navigate(`/playerStats`)}
+                >
+                    View Player Stats
+                </button>
 
-            <EnterPassword />
+                <EnterPassword />
+            </div>
 
             {isLoggedIn && <CreateDraftForm onCreated={loadDrafts} />}
 

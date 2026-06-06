@@ -1,7 +1,6 @@
 import type { MatchResult } from "../types"
 import { getPlayerNameFromId, deleteMatch, updateMatch, getPlayerWinCountForDraft } from "../services/draftServices"
 import { useState, useEffect } from "react";
-import { useActionData } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 
 type Props = {

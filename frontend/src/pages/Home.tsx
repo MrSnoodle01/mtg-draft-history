@@ -6,6 +6,8 @@ import CreateDraftForm from "../components/CreateDraftForm";
 
 export default function Home() {
     const [drafts, setDrafts] = useState<Draft[]>([]);
+    const [password, setPassword] = useState('');
+    const [loggedIn, setLoggedIn] = useState(false);
     const navigate = useNavigate();
 
     async function loadDrafts() {
@@ -26,6 +28,13 @@ export default function Home() {
         }
     }
 
+    function onSubmitPassword(input: string) {
+        if (input == '555') {
+            alert("balls");
+            setLoggedIn(true);
+        }
+    }
+
     useEffect(() => {
         loadDrafts();
     }, []);
@@ -39,6 +48,18 @@ export default function Home() {
                 onClick={() => navigate(`/playerStats`)}
             >
                 View Player Stats
+            </button>
+
+            <input
+                placeholder="Enter Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+            />
+            <button
+                className="button"
+                onClick={() => onSubmitPassword(password)}
+            >
+                enter password
             </button>
 
             <CreateDraftForm onCreated={loadDrafts} />
@@ -56,7 +77,7 @@ export default function Home() {
                         <p>{new Date(d.date).toLocaleDateString()}</p>
                         <p className="muted">{d.location}</p>
 
-                        <button
+                        {loggedIn && <button
                             className="button"
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -65,7 +86,7 @@ export default function Home() {
                             style={{ marginTop: "10px", background: "#c0392b" }}
                         >
                             Delete
-                        </button>
+                        </button>}
                     </div>
                 ))}
             </div>

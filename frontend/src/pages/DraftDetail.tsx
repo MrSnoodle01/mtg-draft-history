@@ -5,10 +5,13 @@ import Player from "../components/ViewPlayer";
 import AddMatch from "../components/AddMatch";
 import ViewMatch from "../components/ViewMatch";
 import type { Draft } from "../types";
+import { useAuth } from "../components/AuthContext";
 
 export default function DraftDetail() {
     const { draftId } = useParams();
     const navigate = useNavigate();
+    const { session } = useAuth();
+    const isLoggedIn = !!session;
 
     const [newPlayerName, setNewPlayerName] = useState("");
     const [newPlayerColors, setNewPlayerColors] = useState<string[]>([]);
@@ -79,32 +82,34 @@ export default function DraftDetail() {
 
             <hr />
 
-            <h3>Add Player</h3>
+            {isLoggedIn && <h3>Add Player</h3>}
 
-            <form className="card form" onSubmit={handleAddPlayer}>
-                <input
-                    placeholder="Player name"
-                    value={newPlayerName}
-                    onChange={(e) => setNewPlayerName(e.target.value)}
-                    required
-                />
+            {isLoggedIn &&
+                <form className="card form" onSubmit={handleAddPlayer}>
+                    <input
+                        placeholder="Player name"
+                        value={newPlayerName}
+                        onChange={(e) => setNewPlayerName(e.target.value)}
+                        required
+                    />
 
-                <input
-                    placeholder="Colors (comma separated, e.g. W,U)"
-                    value={newPlayerColors.join(",")}
-                    onChange={(e) =>
-                        setNewPlayerColors(
-                            e.target.value.split(",").map((c) => c.trim())
-                        )
-                    }
-                />
+                    <input
+                        placeholder="Colors (comma separated, e.g. W,U)"
+                        value={newPlayerColors.join(",")}
+                        onChange={(e) =>
+                            setNewPlayerColors(
+                                e.target.value.split(",").map((c) => c.trim())
+                            )
+                        }
+                    />
 
-                <button className="button" type="submit">
-                    Add Player
-                </button>
-            </form>
+                    <button className="button" type="submit">
+                        Add Player
+                    </button>
+                </form>}
 
-            <AddMatch players={players} load={() => load()} />
+
+            {isLoggedIn && <AddMatch players={players} load={() => load()} />}
 
             <h3>Matches</h3>
 

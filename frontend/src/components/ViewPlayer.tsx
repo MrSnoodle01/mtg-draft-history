@@ -2,6 +2,7 @@ import { updatePlayer, deletePlayer, getNumberOfRoundsPlayed } from "../services
 import type { DraftPlayer } from "../types";
 import { useEffect, useState } from "react";
 import { getPlayerWinCountForDraft } from "../services/draftServices";
+import { useAuth } from "./AuthContext";
 
 type Props = {
     p: DraftPlayer,
@@ -11,6 +12,9 @@ type Props = {
 export default function Player({ p, load }: Props) {
     const [playerWins, setPlayerWins] = useState(0);
     const [playerLosses, setPlayerLosses] = useState(0);
+
+    const { session } = useAuth()
+    const isLoggedIn = !!session;
 
     useEffect(() => {
         async function fetchData() {
@@ -64,22 +68,25 @@ export default function Player({ p, load }: Props) {
             <h3>{p.players.name}({playerWins}-{playerLosses})</h3>
             <p>Colors: {p.colors?.join(", ")}</p>
 
-            <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
-                <button
-                    className="button"
-                    onClick={() => handleEditPlayer(p)}
-                >
-                    Edit
-                </button>
+            {isLoggedIn &&
+                <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
+                    <button
+                        className="button"
+                        onClick={() => handleEditPlayer(p)}
+                    >
+                        Edit
+                    </button>
 
-                <button
-                    className="button"
-                    onClick={() => handleDeletePlayer(p.player_id)}
-                    style={{ background: "#c0392b" }}
-                >
-                    Delete
-                </button>
-            </div>
+                    <button
+                        className="button"
+                        onClick={() => handleDeletePlayer(p.player_id)}
+                        style={{ background: "#c0392b" }}
+                    >
+                        Delete
+                    </button>
+
+                </div>}
+
         </div>
     )
 }

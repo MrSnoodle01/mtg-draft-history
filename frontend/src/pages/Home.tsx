@@ -3,11 +3,13 @@ import { getDrafts, deleteDraft } from "../services/draftServices";
 import { useNavigate } from "react-router-dom";
 import type { Draft } from "../types";
 import CreateDraftForm from "../components/CreateDraftForm";
+import EnterPassword from "../components/EnterPassword";
+import { useAuth } from "../components/AuthContext";
 
 export default function Home() {
     const [drafts, setDrafts] = useState<Draft[]>([]);
-    const [password, setPassword] = useState('');
-    const [loggedIn, setLoggedIn] = useState(false);
+    const { session } = useAuth();
+    const isLoggedIn = !!session;
     const navigate = useNavigate();
 
     async function loadDrafts() {
@@ -28,13 +30,6 @@ export default function Home() {
         }
     }
 
-    function onSubmitPassword(input: string) {
-        if (input == '555') {
-            alert("balls");
-            setLoggedIn(true);
-        }
-    }
-
     useEffect(() => {
         loadDrafts();
     }, []);
@@ -50,19 +45,9 @@ export default function Home() {
                 View Player Stats
             </button>
 
-            <input
-                placeholder="Enter Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-            />
-            <button
-                className="button"
-                onClick={() => onSubmitPassword(password)}
-            >
-                enter password
-            </button>
+            <EnterPassword />
 
-            <CreateDraftForm onCreated={loadDrafts} />
+            {isLoggedIn && <CreateDraftForm onCreated={loadDrafts} />}
 
             <div className="grid">
                 {drafts.map((d) => (
@@ -77,7 +62,7 @@ export default function Home() {
                         <p>{new Date(d.date).toLocaleDateString()}</p>
                         <p className="muted">{d.location}</p>
 
-                        {loggedIn && <button
+                        {isLoggedIn && <button
                             className="button"
                             onClick={(e) => {
                                 e.stopPropagation();

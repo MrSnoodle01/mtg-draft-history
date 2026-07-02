@@ -1,6 +1,7 @@
 import type { MatchResult } from "../types"
 import { getPlayerNameFromId, deleteMatch, updateMatch, getPlayerWinCountForDraft } from "../services/draftServices"
 import { useState, useEffect } from "react";
+import { useAuth } from "./AuthContext";
 
 type Props = {
     m: MatchResult,
@@ -14,6 +15,9 @@ export default function ViewMatch({ m, load }: Props) {
     const [player2CurrWins, setPlayer2CurrWins] = useState(0);
     const [player1CurrLosses, setPlayer1CurrLosses] = useState(0);
     const [player2CurrLosses, setPlayer2CurrLosses] = useState(0);
+
+    const { session } = useAuth();
+    const isLoggedIn = !!session;
 
     useEffect(() => {
         async function fetchData() {
@@ -77,22 +81,24 @@ export default function ViewMatch({ m, load }: Props) {
                 <h3>{player2Name} defeats {player1Name} {m.player2_games_won} - {m.player1_games_won}</h3>
             }
 
-            <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
-                <button
-                    className="button"
-                    onClick={() => handleEditMatch(m)}
-                >
-                    Edit
-                </button>
+            {isLoggedIn &&
+                <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
+                    <button
+                        className="button"
+                        onClick={() => handleEditMatch(m)}
+                    >
+                        Edit
+                    </button>
 
-                <button
-                    className="button"
-                    onClick={() => handleDeleteMatch(m.match_id)}
-                    style={{ background: "#c0392b" }}
-                >
-                    Delete
-                </button>
-            </div>
+                    <button
+                        className="button"
+                        onClick={() => handleDeleteMatch(m.match_id)}
+                        style={{ background: "#c0392b" }}
+                    >
+                        Delete
+                    </button>
+                </div>}
+
         </div>
     )
 }

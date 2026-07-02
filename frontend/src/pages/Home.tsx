@@ -3,9 +3,13 @@ import { getDrafts, deleteDraft } from "../services/draftServices";
 import { useNavigate } from "react-router-dom";
 import type { Draft } from "../types";
 import CreateDraftForm from "../components/CreateDraftForm";
+import EnterPassword from "../components/EnterPassword";
+import { useAuth } from "../components/AuthContext";
 
 export default function Home() {
     const [drafts, setDrafts] = useState<Draft[]>([]);
+    const { session } = useAuth();
+    const isLoggedIn = !!session;
     const navigate = useNavigate();
 
     async function loadDrafts() {
@@ -34,14 +38,18 @@ export default function Home() {
         <div className="main">
             <h1>MTG Draft Tracker</h1>
 
-            <button
-                className="button"
-                onClick={() => navigate(`/playerStats`)}
-            >
-                View Player Stats
-            </button>
+            <div className="nav">
+                <button
+                    className="button"
+                    onClick={() => navigate(`/playerStats`)}
+                >
+                    View Player Stats
+                </button>
 
-            <CreateDraftForm onCreated={loadDrafts} />
+                <EnterPassword />
+            </div>
+
+            {isLoggedIn && <CreateDraftForm onCreated={loadDrafts} />}
 
             <div className="grid">
                 {drafts.map((d) => (
@@ -56,7 +64,7 @@ export default function Home() {
                         <p>{new Date(d.date).toLocaleDateString()}</p>
                         <p className="muted">{d.location}</p>
 
-                        <button
+                        {isLoggedIn && <button
                             className="button"
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -65,7 +73,7 @@ export default function Home() {
                             style={{ marginTop: "10px", background: "#c0392b" }}
                         >
                             Delete
-                        </button>
+                        </button>}
                     </div>
                 ))}
             </div>

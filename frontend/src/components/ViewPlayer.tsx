@@ -2,6 +2,7 @@ import { updatePlayer, deletePlayer, getNumberOfRoundsPlayed } from "../services
 import type { DraftPlayer } from "../types";
 import { useEffect, useState } from "react";
 import { getPlayerWinCountForDraft } from "../services/draftServices";
+import { useAuth } from "./AuthContext";
 
 type Props = {
     p: DraftPlayer,
@@ -13,6 +14,9 @@ export default function Player({ p, load }: Props) {
     const [playerLosses, setPlayerLosses] = useState(0);
     const mainColors = p.main_colors;
     const splashColors = p.splash_colors;
+
+    const { session } = useAuth()
+    const isLoggedIn = !!session;
 
     useEffect(() => {
         async function fetchData() {
@@ -73,22 +77,25 @@ export default function Player({ p, load }: Props) {
             <p>Main colors: {mainColors ? mainColors.join(", ") : "—"}</p>
             <p>Splash colors: {splashColors ? splashColors.join(", ") : "—"}</p>
 
-            <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
-                <button
-                    className="button"
-                    onClick={() => handleEditPlayer(p)}
-                >
-                    Edit
-                </button>
+            {isLoggedIn &&
+                <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
+                    <button
+                        className="button"
+                        onClick={() => handleEditPlayer(p)}
+                    >
+                        Edit
+                    </button>
 
-                <button
-                    className="button"
-                    onClick={() => handleDeletePlayer(p.player_id)}
-                    style={{ background: "#c0392b" }}
-                >
-                    Delete
-                </button>
-            </div>
+                    <button
+                        className="button"
+                        onClick={() => handleDeletePlayer(p.player_id)}
+                        style={{ background: "#c0392b" }}
+                    >
+                        Delete
+                    </button>
+
+                </div>}
+
         </div>
     )
 }

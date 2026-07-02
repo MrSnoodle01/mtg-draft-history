@@ -5,10 +5,13 @@ import Player from "../components/ViewPlayer";
 import AddMatch from "../components/AddMatch";
 import ViewMatch from "../components/ViewMatch";
 import type { Draft } from "../types";
+import { useAuth } from "../components/AuthContext";
 
 export default function DraftDetail() {
     const { draftId } = useParams();
     const navigate = useNavigate();
+    const { session } = useAuth();
+    const isLoggedIn = !!session;
 
     const [newPlayerName, setNewPlayerName] = useState("");
     const [newPlayerMainColors, setNewPlayerMainColors] = useState<string[]>([]);
@@ -82,38 +85,40 @@ export default function DraftDetail() {
 
             <hr />
 
-            <h3>Add Player</h3>
+            {isLoggedIn && <h3>Add Player</h3>}
 
-            <form className="card form" onSubmit={handleAddPlayer}>
-                <input
-                    placeholder="Player name"
-                    value={newPlayerName}
-                    onChange={(e) => setNewPlayerName(e.target.value)}
-                    required
-                />
+            {isLoggedIn &&
+                <form className="card form" onSubmit={handleAddPlayer}>
+                    <input
+                        placeholder="Player name"
+                        value={newPlayerName}
+                        onChange={(e) => setNewPlayerName(e.target.value)}
+                        required
+                    />
 
-                <label htmlFor="mainColors">Main colors</label>
-                <input
-                    id="mainColors"
-                    placeholder="W,U"
-                    value={newPlayerMainColors.join(",")}
-                    onChange={(e) => setNewPlayerMainColors(e.target.value.split(",").map((c) => c.trim()))}
-                />
+                    <label htmlFor="mainColors">Main colors</label>
+                    <input
+                        id="mainColors"
+                        placeholder="W,U"
+                        value={newPlayerMainColors.join(",")}
+                        onChange={(e) => setNewPlayerMainColors(e.target.value.split(",").map((c) => c.trim()))}
+                    />
 
-                <label htmlFor="splashColors">Splash colors</label>
-                <input
-                    id="splashColors"
-                    placeholder="R,G"
-                    value={newPlayerSplashColors.join(",")}
-                    onChange={(e) => setNewPlayerSplashColors(e.target.value.split(",").map((c) => c.trim()))}
-                />
+                    <label htmlFor="splashColors">Splash colors</label>
+                    <input
+                        id="splashColors"
+                        placeholder="R,G"
+                        value={newPlayerSplashColors.join(",")}
+                        onChange={(e) => setNewPlayerSplashColors(e.target.value.split(",").map((c) => c.trim()))}
+                    />
 
-                <button className="button" type="submit">
-                    Add Player
-                </button>
-            </form>
+                    <button className="button" type="submit">
+                        Add Player
+                    </button>
+                </form>}
 
-            <AddMatch players={players} load={() => load()} />
+
+            {isLoggedIn && <AddMatch players={players} load={() => load()} />}
 
             <h3>Matches</h3>
 

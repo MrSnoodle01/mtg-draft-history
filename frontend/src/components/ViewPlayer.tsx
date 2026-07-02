@@ -11,6 +11,8 @@ type Props = {
 export default function Player({ p, load }: Props) {
     const [playerWins, setPlayerWins] = useState(0);
     const [playerLosses, setPlayerLosses] = useState(0);
+    const mainColors = p.main_colors;
+    const splashColors = p.splash_colors;
 
     useEffect(() => {
         async function fetchData() {
@@ -40,17 +42,23 @@ export default function Player({ p, load }: Props) {
 
         if (!newName) return;
 
-        const colorsInput = prompt(
-            "Colors (comma separated)",
-            player.colors?.join(",") ?? ""
+        const mainColorsInput = prompt(
+            "Main colors (comma separated)",
+            ""
         );
 
-        const colors = colorsInput ? colorsInput.split(",").map((c) => c.trim()) : [];
+        if (mainColorsInput === null) return;
+
+        const splashColorsInput = prompt(
+            "Splash colors (comma separated)",
+            ""
+        );
 
         try {
             await updatePlayer(player.player_id, player.draft_id, {
                 player_name: newName,
-                colors,
+                main_colors: mainColorsInput.split(",").map((c) => c.trim()),
+                splash_colors: splashColorsInput ? splashColorsInput.split(",").map((c) => c.trim()) : [],
             });
 
             load();
@@ -62,7 +70,8 @@ export default function Player({ p, load }: Props) {
     return (
         <div key={p.player_id} className="card">
             <h3>{p.players.name}({playerWins}-{playerLosses})</h3>
-            <p>Colors: {p.colors?.join(", ")}</p>
+            <p>Main colors: {mainColors ? mainColors.join(", ") : "—"}</p>
+            <p>Splash colors: {splashColors ? splashColors.join(", ") : "—"}</p>
 
             <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
                 <button

@@ -39,7 +39,7 @@ export default function PlayerStats() {
     }, []);
 
     const sortedStats = useMemo(() => {
-        return [...stats].sort((a, b) => b.matchWins - a.matchWins);
+        return [...stats].sort((a, b) => b.winRate - a.winRate);
     }, [stats]);
 
     return (

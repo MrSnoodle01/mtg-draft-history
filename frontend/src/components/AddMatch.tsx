@@ -14,9 +14,9 @@ export default function AddMatch({ players, load }: Props) {
 
     const [player1, setPlayer1] = useState("");
     const [player2, setPlayer2] = useState("");
-    const [player1Wins, setPlayer1Wins] = useState(0);
-    const [player2Wins, setPlayer2Wins] = useState(0);
-    const [round, setRound] = useState(1);
+    const [player1Wins, setPlayer1Wins] = useState("");
+    const [player2Wins, setPlayer2Wins] = useState("");
+    const [round, setRound] = useState("");
 
     async function handleAddMatch(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -25,16 +25,16 @@ export default function AddMatch({ players, load }: Props) {
 
         const player1Id = await getPlayerIdFromNameAndDraft(player1, draftId);
         const player2Id = await getPlayerIdFromNameAndDraft(player2, draftId);
-        const winnerId = player1Wins - player2Wins > 0 ? player1Id : player2Id;
+        const winnerId = Number(player1Wins) - Number(player2Wins) > 0 ? player1Id : player2Id;
 
         try {
             await createMatch({
                 draft_id: draftId,
                 player1_id: player1Id,
                 player2_id: player2Id,
-                player1_games_won: player1Wins,
-                player2_games_won: player2Wins,
-                round,
+                player1_games_won: Number(player1Wins),
+                player2_games_won: Number(player2Wins),
+                round: Number(round),
                 winner_id: winnerId,
             });
 
@@ -88,9 +88,9 @@ export default function AddMatch({ players, load }: Props) {
                     <label htmlFor="p1Wins">Player 1 Wins</label>
                     <input
                         id="p1Wins"
-                        type="number"
+                        type="text"
                         value={player1Wins}
-                        onChange={(e) => setPlayer1Wins(Number(e.target.value))}
+                        onChange={(e) => setPlayer1Wins(e.target.value)}
                     />
                 </div>
 
@@ -98,9 +98,9 @@ export default function AddMatch({ players, load }: Props) {
                     <label htmlFor="p2Wins">Player 2 Wins</label>
                     <input
                         id="p2Wins"
-                        type="number"
+                        type="text"
                         value={player2Wins}
-                        onChange={(e) => setPlayer2Wins(Number(e.target.value))}
+                        onChange={(e) => setPlayer2Wins(e.target.value)}
                     />
                 </div>
 
@@ -108,9 +108,9 @@ export default function AddMatch({ players, load }: Props) {
                     <label htmlFor="round">Round</label>
                     <input
                         id="round"
-                        type="number"
+                        type="text"
                         value={round}
-                        onChange={(e) => setRound(Number(e.target.value))}
+                        onChange={(e) => setRound(e.target.value)}
                     />
                 </div>
 

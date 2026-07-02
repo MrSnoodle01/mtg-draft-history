@@ -11,7 +11,8 @@ export default function DraftDetail() {
     const navigate = useNavigate();
 
     const [newPlayerName, setNewPlayerName] = useState("");
-    const [newPlayerColors, setNewPlayerColors] = useState<string[]>([]);
+    const [newPlayerMainColors, setNewPlayerMainColors] = useState<string[]>([]);
+    const [newPlayerSplashColors, setNewPlayerSplashColors] = useState<string[]>([]);
 
     const [draft, setDraft] = useState<Draft | null>(null);
     const [players, setPlayers] = useState<any[]>([]);
@@ -44,11 +45,13 @@ export default function DraftDetail() {
             await addPlayerToDraft({
                 draft_id: draftId,
                 player_name: newPlayerName,
-                colors: newPlayerColors,
+                main_colors: newPlayerMainColors,
+                splash_colors: newPlayerSplashColors,
             });
 
             setNewPlayerName("");
-            setNewPlayerColors([]);
+            setNewPlayerMainColors([]);
+            setNewPlayerSplashColors([]);
 
             load();
         } catch (err) {
@@ -89,14 +92,20 @@ export default function DraftDetail() {
                     required
                 />
 
+                <label htmlFor="mainColors">Main colors</label>
                 <input
-                    placeholder="Colors (comma separated, e.g. W,U)"
-                    value={newPlayerColors.join(",")}
-                    onChange={(e) =>
-                        setNewPlayerColors(
-                            e.target.value.split(",").map((c) => c.trim())
-                        )
-                    }
+                    id="mainColors"
+                    placeholder="W,U"
+                    value={newPlayerMainColors.join(",")}
+                    onChange={(e) => setNewPlayerMainColors(e.target.value.split(",").map((c) => c.trim()))}
+                />
+
+                <label htmlFor="splashColors">Splash colors</label>
+                <input
+                    id="splashColors"
+                    placeholder="R,G"
+                    value={newPlayerSplashColors.join(",")}
+                    onChange={(e) => setNewPlayerSplashColors(e.target.value.split(",").map((c) => c.trim()))}
                 />
 
                 <button className="button" type="submit">

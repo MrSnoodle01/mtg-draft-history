@@ -161,8 +161,11 @@ export async function deleteDraft(draft_id: string) {
 export async function addPlayerToDraft(input: {
     draft_id: string;
     player_name: string;
-    colors: string[];
+    colors?: string[];
+    main_colors?: string[];
+    splash_colors?: string[];
 }) {
+
     // Check if player already exists
     let { data: player } = await supabase
         .from("players")
@@ -188,7 +191,8 @@ export async function addPlayerToDraft(input: {
         .insert({
             draft_id: input.draft_id,
             player_id: player.id,
-            colors: input.colors,
+            main_colors: input.main_colors,
+            splash_colors: input.splash_colors,
             placement: 0,
         })
         .select();
@@ -213,11 +217,14 @@ export async function updatePlayer(
     updates: {
         player_name?: string;
         colors?: string[];
+        main_colors?: string[];
+        splash_colors?: string[];
     }
 ) {
     const updateData: {
         player_id?: string;
-        colors?: string[];
+        main_colors?: string[];
+        splash_colors?: string[];
     } = {};
 
     if (updates.player_name) {
@@ -244,9 +251,8 @@ export async function updatePlayer(
         updateData.player_id = player.id;
     }
 
-    if (updates.colors) {
-        updateData.colors = updates.colors;
-    }
+    updateData.main_colors = updates.main_colors;
+    updateData.splash_colors = updates.splash_colors != undefined ? updates.splash_colors : [];
 
     const { data, error } = await supabase
         .from("draft_players")

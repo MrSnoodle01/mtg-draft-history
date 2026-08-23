@@ -1,7 +1,6 @@
-import { updatePlayer, deletePlayer, getNumberOfRoundsPlayed } from "../services/draftServices";
+import { updatePlayer, deletePlayer, getPlayerOverallWinsLossesForDraft } from "../services/draftServices";
 import type { DraftPlayer } from "../types";
 import { useEffect, useState } from "react";
-import { getPlayerWinCountForDraft } from "../services/draftServices";
 import { useAuth } from "./AuthContext";
 
 type Props = {
@@ -20,11 +19,10 @@ export default function Player({ p, load }: Props) {
 
     useEffect(() => {
         async function fetchData() {
-            const roundsPlayed = await getNumberOfRoundsPlayed(p.player_id, p.draft_id);
-            const p1Wins = await getPlayerWinCountForDraft(p.draft_id, p.player_id, roundsPlayed + 1);
+            const record = await getPlayerOverallWinsLossesForDraft(p.draft_id, p.player_id);
 
-            setPlayerWins(p1Wins);
-            setPlayerLosses(roundsPlayed - p1Wins);
+            setPlayerWins(record.wins);
+            setPlayerLosses(record.losses);
         }
 
         fetchData();

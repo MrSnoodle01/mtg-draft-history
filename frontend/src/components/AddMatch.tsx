@@ -26,6 +26,7 @@ export default function AddMatch({ players, load }: Props) {
         const player1Id = await getPlayerIdFromNameAndDraft(player1, draftId);
         const player2Id = await getPlayerIdFromNameAndDraft(player2, draftId);
         const winnerId = Number(player1Wins) - Number(player2Wins) > 0 ? player1Id : player2Id;
+        const loserId = Number(player1Wins) - Number(player2Wins) > 0 ? player2Id : player1Id;
 
         try {
             await createMatch({
@@ -36,6 +37,7 @@ export default function AddMatch({ players, load }: Props) {
                 player2_games_won: Number(player2Wins),
                 round: Number(round),
                 winner_id: winnerId,
+                loser_id: loserId,
             });
 
             load();

@@ -96,6 +96,7 @@ export async function createMatch(match: {
     player2_games_won: number;
     round: number;
     winner_id?: string;
+    loser_id?: string;
 }) {
     const { data, error } = await supabase
         .from("matches")
@@ -314,6 +315,41 @@ export async function getPlayerWinCountForDraft(draftId: string, playerId: strin
     return data.length;
 }
 
+export async function getPlayerLossCountForDraft(draftId: string, playerId: string, round: number) {
+    const { data, error } = await supabase
+        .from("matches")
+        .select("loser_id")
+        .eq("draft_id", draftId)
+        .eq("loser_id", playerId)
+        .lt("round", round)
+
+    if (error) {
+        throw error;
+    }
+
+    return data.length;
+}
+
+export async function getPlayerOverallWinsLossesForDraft(draftId: string, playerId: string) {
+    const { data, error } = await supabase
+        .from("matches")
+        .select("winner_id, loser_id")
+        .eq("draft_id", draftId)
+        .or(`winner_id.eq.${playerId},loser_id.eq.${playerId}`);
+
+    if (error) {
+        throw error;
+    }
+
+    const wins = data.filter(match => match.winner_id === playerId).length;
+    const losses = data.filter(match => match.loser_id === playerId).length;
+
+    return {
+        wins,
+        losses
+    };
+}
+
 export async function getNumberOfRoundsPlayed(playerId: string, draftId: string) {
     const { data, error } = await supabase
         .from("matches")
@@ -354,7 +390,9 @@ export async function getPlayerStats(): Promise<PlayerStat[]> {
             m => m.winner_id === player.id
         ).length;
 
-        const matchLosses = playerMatches.length - matchWins;
+        const matchLosses = playerMatches.filter(
+            m => m.loser_id === player.id
+        ).length;
 
         let gamesWon = 0;
         let gamesLost = 0;

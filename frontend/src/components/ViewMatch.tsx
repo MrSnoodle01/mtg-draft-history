@@ -1,5 +1,5 @@
 import type { MatchResult } from "../types"
-import { getPlayerNameFromId, deleteMatch, updateMatch, getPlayerWinCountForDraft } from "../services/draftServices"
+import { getPlayerNameFromId, deleteMatch, updateMatch, getPlayerWinCountForDraft, getPlayerLossCountForDraft } from "../services/draftServices"
 import { useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
 
@@ -25,13 +25,15 @@ export default function ViewMatch({ m, load }: Props) {
             const p2 = await getPlayerNameFromId(m.player2_id);
             const p1Wins = await getPlayerWinCountForDraft(m.draft_id, m.player1_id, m.round);
             const p2Wins = await getPlayerWinCountForDraft(m.draft_id, m.player2_id, m.round);
+            const p1Losses = await getPlayerLossCountForDraft(m.draft_id, m.player1_id, m.round);
+            const p2Losses = await getPlayerLossCountForDraft(m.draft_id, m.player2_id, m.round);
 
             setPlayer1Name(p1);
             setPlayer2Name(p2);
             setPlayer1CurrWins(p1Wins);
             setPlayer2CurrWins(p2Wins);
-            setPlayer1CurrLosses(m.round - p1Wins - 1);
-            setPlayer2CurrLosses(m.round - p2Wins - 1);
+            setPlayer1CurrLosses(p1Losses);
+            setPlayer2CurrLosses(p2Losses);
         }
 
         fetchData();

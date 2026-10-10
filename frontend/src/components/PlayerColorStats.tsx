@@ -119,7 +119,7 @@ export default function PlayerStats() {
                 <p>No player data found.</p>
             ) : (
                 <>
-                    <h2>Player Color Statistics</h2>
+                    <h1>Player Color Stats</h1>
 
                     {stats.map((player) => {
                         const playerRates = winRates.find(
@@ -154,16 +154,22 @@ export default function PlayerStats() {
                         );
 
                         return (
-                            <section key={player.player_name}>
-                                <h3>Player: {player.player_name}</h3>
-                                <p>Drafts played: {player.draftsPlayed}</p>
+                            <details key={player.player_id} className="player-stats">
+                                <summary className="player-stats-header">
+                                    <span>{player.player_name}</span>
+                                    <span className="draft-count">
+                                        {player.draftsPlayed} drafts played
+                                    </span>
+                                </summary>
 
-                                <h3>Color Combinations (without splash)</h3>
-                                <ColorComboGraph combinationData={combinationData} />
+                                <div className="player-stats-content">
+                                    <h3>Color Combinations (without splash)</h3>
+                                    <ColorComboGraph combinationData={combinationData} />
 
-                                <h3>Colors</h3>
-                                <ColorGraph data={data} />
-                            </section>
+                                    <h3>Colors</h3>
+                                    <ColorGraph data={data} />
+                                </div>
+                            </details>
                         )
                     })}
                 </>

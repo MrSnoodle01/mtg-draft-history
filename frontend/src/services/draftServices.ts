@@ -10,6 +10,13 @@ export type CreateDraftInput = {
     location: string;
 };
 
+type DraftPlayerColors = {
+    draft_id: string;
+    player_id: string;
+    main_colors: string[];
+    splash_colors: string[];
+}
+
 type PlayerStat = {
     id: string;
     name: string;
@@ -288,7 +295,7 @@ export async function getPlayerIdFromNameAndDraft(
     return data.player_id;
 }
 
-export async function getPlayerNameFromId(playerId: string) {
+export async function getPlayerNameFromId(playerId: string): Promise<string> {
     const { data, error } = await supabase
         .from("players")
         .select("name")
@@ -457,4 +464,16 @@ export async function getPlayerStats(): Promise<PlayerStat[]> {
             headToHead: headToHeadNamed,
         };
     });
+}
+
+export async function getAllPlayersColors(): Promise<DraftPlayerColors[]> {
+    const { data, error } = await supabase
+        .from("draft_players")
+        .select("draft_id, player_id, main_colors, splash_colors");
+
+    if (error) {
+        throw (error);
+    }
+
+    return data ?? [];
 }

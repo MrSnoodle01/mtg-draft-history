@@ -81,3 +81,32 @@ select:focus {
   align-items: center;
   width: 100%;
 }
+
+.stats-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0 20px;
+}
+
+.stats-tabs button {
+  padding: 10px 20px;
+  border: 1px solid #263449;
+  border-radius: 8px;
+  background: #111827;
+  color: #cbd5e1;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.stats-tabs button:hover {
+  background: #1e293b;
+}
+
+
+.stats-tabs button.active {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}

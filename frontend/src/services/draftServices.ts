@@ -10,6 +10,25 @@ export type CreateDraftInput = {
     location: string;
 };
 
+export type WinRateRecord = {
+    gamesWon: number;
+    gamesPlayed: number;
+    winRate: number;
+}
+
+export type PlayerColorWinRates = {
+    player_id: string;
+    colorWinRates: Record<string, WinRateRecord>;
+    combinationWinRates: Record<string, WinRateRecord>;
+}
+
+type DraftPlayerColors = {
+    draft_id: string;
+    player_id: string;
+    main_colors: string[];
+    splash_colors: string[];
+}
+
 type PlayerStat = {
     id: string;
     name: string;
@@ -288,7 +307,7 @@ export async function getPlayerIdFromNameAndDraft(
     return data.player_id;
 }
 
-export async function getPlayerNameFromId(playerId: string) {
+export async function getPlayerNameFromId(playerId: string): Promise<string> {
     const { data, error } = await supabase
         .from("players")
         .select("name")
@@ -457,4 +476,161 @@ export async function getPlayerStats(): Promise<PlayerStat[]> {
             headToHead: headToHeadNamed,
         };
     });
+}
+
+export async function getAllPlayersColors(): Promise<DraftPlayerColors[]> {
+    const { data, error } = await supabase
+        .from("draft_players")
+        .select("draft_id, player_id, main_colors, splash_colors");
+
+    if (error) {
+        throw (error);
+    }
+
+    return data ?? [];
+}
+
+export async function getPlayerColorWinRates(): Promise<PlayerColorWinRates[]> {
+    const [playersRes, draftPlayersRes, matchesRes] = await Promise.all([
+        supabase.from("players").select("id"),
+        supabase.from("draft_players")
+            .select("draft_id, player_id, main_colors, splash_colors"),
+        supabase.from("matches")
+            .select("draft_id, player1_id, player2_id, player1_games_won, player2_games_won"),
+    ]);
+
+    if (playersRes.error) throw playersRes.error;
+    if (draftPlayersRes.error) throw draftPlayersRes.error;
+    if (matchesRes.error) throw matchesRes.error;
+
+    const COLOR_ORDER = ["W", "U", "B", "R", "G"];
+
+    type Counter = {
+        gamesWon: number;
+        gamesPlayed: number;
+    };
+
+    const results = new Map<
+        string,
+        {
+            colorStats: Record<string, Counter>;
+            combinationStats: Record<string, Counter>;
+        }
+    >();
+
+    for (const player of playersRes.data ?? []) {
+        results.set(player.id, {
+            colorStats: {},
+            combinationStats: {},
+        });
+    }
+
+    // Index draft entries so each match can find both players' colors.
+    const colorsByDraftPlayer = new Map<
+        string,
+        { main_colors: string[]; splash_colors: string[] }
+    >();
+
+    for (const entry of draftPlayersRes.data ?? []) {
+        colorsByDraftPlayer.set(
+            `${entry.draft_id}:${entry.player_id}`,
+            {
+                main_colors: entry.main_colors ?? [],
+                splash_colors: entry.splash_colors ?? [],
+            }
+        );
+    }
+
+    function add(
+        record: Record<string, Counter>,
+        key: string,
+        wins: number,
+        gamesPlayed: number
+    ) {
+        if (!record[key]) {
+            record[key] = { gamesWon: 0, gamesPlayed: 0 };
+        }
+
+        record[key].gamesWon += wins;
+        record[key].gamesPlayed += gamesPlayed;
+    }
+
+    for (const match of matchesRes.data ?? []) {
+        if (!match.draft_id || !match.player1_id || !match.player2_id) {
+            continue;
+        }
+
+        const p1Wins = match.player1_games_won ?? 0;
+        const p2Wins = match.player2_games_won ?? 0;
+        const totalGames = p1Wins + p2Wins;
+
+        if (totalGames === 0) continue;
+
+        const matchPlayers = [
+            { id: match.player1_id, wins: p1Wins },
+            { id: match.player2_id, wins: p2Wins },
+        ];
+
+        for (const participant of matchPlayers) {
+            const stats = results.get(participant.id);
+            const colors = colorsByDraftPlayer.get(
+                `${match.draft_id}:${participant.id}`
+            );
+
+            if (!stats || !colors) continue;
+
+            const allColors = [
+                ...colors.main_colors,
+                ...colors.splash_colors,
+            ];
+
+            for (const color of new Set(allColors)) {
+                add(
+                    stats.colorStats,
+                    color,
+                    participant.wins,
+                    totalGames
+                );
+            }
+
+            const combination = [...colors.main_colors]
+                .sort(
+                    (a, b) =>
+                        COLOR_ORDER.indexOf(a) - COLOR_ORDER.indexOf(b)
+                )
+                .join("-");
+
+            if (combination) {
+                add(
+                    stats.combinationStats,
+                    combination,
+                    participant.wins,
+                    totalGames
+                );
+            }
+        }
+    }
+
+    function calculateRates(
+        counts: Record<string, Counter>
+    ): Record<string, WinRateRecord> {
+        return Object.fromEntries(
+            Object.entries(counts).map(([key, value]) => [
+                key,
+                {
+                    ...value,
+                    winRate:
+                        value.gamesPlayed > 0
+                            ? (value.gamesWon / value.gamesPlayed) * 100
+                            : 0,
+                },
+            ])
+        );
+    }
+
+    return Array.from(results.entries()).map(([player_id, stats]) => ({
+        player_id,
+        colorWinRates: calculateRates(stats.colorStats),
+        combinationWinRates: calculateRates(stats.combinationStats),
+    }));
 }

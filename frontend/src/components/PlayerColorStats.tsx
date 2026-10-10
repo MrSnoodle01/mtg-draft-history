@@ -1,14 +1,7 @@
 import { getAllPlayersColors, getPlayerNameFromId } from "../services/draftServices";
 import { useEffect, useState } from "react";
-import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    Tooltip,
-    ResponsiveContainer,
-    CartesianGrid,
-} from "recharts";
+import ColorComboGraph from "./ColorComboGraph";
+import ColorGraph from "./ColorGraph";
 
 type DraftPlayerColors = {
     draft_id: string;
@@ -25,16 +18,7 @@ type PlayerColorStats = {
     combinationCounts: Record<string, number>;
 };
 
-const COLORS: Record<string, string> = {
-    W: "#F9FAF4", // White
-    U: "#4786D1", // Blue
-    B: "#383838", // Black
-    R: "#E64946", // Red
-    G: "#3B9B62", // Green
-};
-
 const COLOR_ORDER = ["W", "U", "B", "R", "G"];
-
 
 function toStackedChartData(
     mainCounts: Record<string, number>,
@@ -139,168 +123,10 @@ export default function PlayerStats() {
                                 <p>Drafts played: {player.draftsPlayed}</p>
 
                                 <h3>Color Combinations (without splash)</h3>
-
-                                <div style={{ width: "100%", height: Math.max(300, combinationData.length * 45) }}>
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart
-                                            data={combinationData}
-                                            layout="vertical"
-                                            margin={{ top: 10, right: 35, left: 20, bottom: 10 }}
-                                        >
-                                            <CartesianGrid
-                                                strokeDasharray="3 3"
-                                                horizontal={false}
-                                            />
-
-                                            <XAxis
-                                                type="number"
-                                                allowDecimals={false}
-                                            />
-
-                                            <YAxis
-                                                type="category"
-                                                dataKey="name"
-                                                width={70}
-                                                tickFormatter={(name) => name.replaceAll("-", "")}
-                                            />
-
-                                            <Tooltip
-                                                formatter={(value) => [value, "Drafts"]}
-                                                labelFormatter={(label) =>
-                                                    `Colors: ${String(label).replaceAll("-", "")}`
-                                                }
-                                            />
-
-                                            <Bar
-                                                dataKey="count"
-                                                name="Drafts"
-                                                barSize={24}
-                                                radius={[0, 4, 4, 0]}
-                                                shape={(props) => {
-                                                    const { x, y, width, height, payload } = props;
-
-                                                    if (
-                                                        x == null ||
-                                                        y == null ||
-                                                        width == null ||
-                                                        height == null ||
-                                                        height === 0
-                                                    ) {
-                                                        return <g />;
-                                                    }
-
-                                                    const colors: string[] = payload.colors;
-                                                    const segmentWidth = width / colors.length;
-
-                                                    return (
-                                                        <g>
-                                                            {colors.map((color, index) => (
-                                                                <rect
-                                                                    key={`${payload.name}-${color}`}
-                                                                    x={x + index * segmentWidth}
-                                                                    y={y}
-                                                                    width={segmentWidth}
-                                                                    height={height}
-                                                                    fill={COLORS[color] ?? "#8884d8"}
-                                                                />
-                                                            ))}
-                                                        </g>
-                                                    );
-                                                }}
-                                            />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
+                                <ColorComboGraph combinationData={combinationData} />
 
                                 <h3>Colors</h3>
-                                <ResponsiveContainer width="100%" height={300}>
-                                    <BarChart data={data}>
-                                        <defs>
-                                            {Object.entries(COLORS).map(([color, fill]) => (
-                                                <pattern
-                                                    key={color}
-                                                    id={`splash-${color}`}
-                                                    patternUnits="userSpaceOnUse"
-                                                    width={6}
-                                                    height={6}
-                                                    patternTransform="rotate(45)"
-                                                >
-                                                    <rect width={6} height={6} fill="white" />
-                                                    <line
-                                                        x1={0}
-                                                        y1={0}
-                                                        x2={0}
-                                                        y2={6}
-                                                        stroke={fill}
-                                                        strokeWidth={3}
-                                                    />
-                                                </pattern>
-                                            ))}
-                                        </defs>
-
-                                        <XAxis dataKey="name" />
-                                        <YAxis allowDecimals={false} />
-                                        <Tooltip />
-
-                                        <Bar
-                                            dataKey="main"
-                                            name="Main color"
-                                            stackId="colors"
-                                            shape={(props) => {
-                                                const { x, y, width, height, payload } = props;
-
-                                                if (
-                                                    x == null ||
-                                                    y == null ||
-                                                    width == null ||
-                                                    height == null ||
-                                                    height === 0
-                                                ) {
-                                                    return <g />;
-                                                }
-
-                                                return (
-                                                    <rect
-                                                        x={x}
-                                                        y={y}
-                                                        width={width}
-                                                        height={height}
-                                                        fill={COLORS[payload.name] ?? "#8884d8"}
-                                                    />
-                                                );
-                                            }}
-                                        />
-
-                                        <Bar
-                                            dataKey="splash"
-                                            name="Splash color"
-                                            stackId="colors"
-                                            shape={(props) => {
-                                                const { x, y, width, height, payload } = props;
-
-                                                if (
-                                                    x == null ||
-                                                    y == null ||
-                                                    width == null ||
-                                                    height == null ||
-                                                    height === 0
-                                                ) {
-                                                    return <g />;
-                                                }
-
-                                                return (
-                                                    <rect
-                                                        x={x}
-                                                        y={y}
-                                                        width={width}
-                                                        height={height}
-                                                        fill={`url(#splash-${payload.name})`}
-                                                    />
-                                                );
-                                            }}
-                                        />
-                                    </BarChart>
-                                </ResponsiveContainer>
+                                <ColorGraph data={data} />
                             </section>
                         )
                     })}

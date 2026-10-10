@@ -6,18 +6,21 @@ import {
     Tooltip,
     ResponsiveContainer,
     CartesianGrid,
+    LabelList,
 } from "recharts";
 
 type CombinationDataType = {
-    name: string,
-    count: number,
-    colors: string[],
+    name: string;
+    count: number;
+    colors: string[];
+    winRate: number;
+    gamesWon: number;
+    gamesPlayed: number;
 }
 
 type ColorComboGraphProps = {
     combinationData: CombinationDataType[];
 };
-
 
 const COLORS: Record<string, string> = {
     W: "#F9FAF4", // White
@@ -96,7 +99,13 @@ export default function ColorComboGraph({ combinationData }: ColorComboGraphProp
                                 </g>
                             );
                         }}
-                    />
+                    >
+                        <LabelList
+                            dataKey="winRate"
+                            position="right"
+                            formatter={(value) => `GWR: ${Number(value).toFixed(1)}%`}
+                        />
+                    </Bar>
                 </BarChart>
             </ResponsiveContainer>
         </div>

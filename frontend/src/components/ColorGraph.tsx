@@ -5,12 +5,16 @@ import {
     YAxis,
     Tooltip,
     ResponsiveContainer,
+    LabelList,
 } from "recharts";
 
 type ColorDataType = {
-    name: string,
-    main: number,
-    splash: number,
+    name: string;
+    main: number;
+    splash: number;
+    winRate: number;
+    gamesWon: number;
+    gamesPlayed: number;
 }
 
 type ColorGraphProps = {
@@ -114,7 +118,13 @@ export default function ColorGraph({ data }: ColorGraphProps) {
                                 />
                             );
                         }}
-                    />
+                    >
+                        <LabelList
+                            dataKey="winRate"
+                            position="top"
+                            formatter={(value) => `GWR: ${Number(value).toFixed(1)}%`}
+                        />
+                    </Bar>
                 </BarChart>
             </ResponsiveContainer>
         </div>

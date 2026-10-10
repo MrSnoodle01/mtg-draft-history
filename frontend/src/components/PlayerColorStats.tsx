@@ -1,4 +1,9 @@
-import { getAllPlayersColors, getPlayerNameFromId } from "../services/draftServices";
+import {
+    getAllPlayersColors,
+    getPlayerNameFromId,
+    getPlayerColorWinRates,
+    type PlayerColorWinRates,
+} from "../services/draftServices";
 import { useEffect, useState } from "react";
 import ColorComboGraph from "./ColorComboGraph";
 import ColorGraph from "./ColorGraph";
@@ -12,6 +17,7 @@ type DraftPlayerColors = {
 
 type PlayerColorStats = {
     player_name: string;
+    player_id: string;
     draftsPlayed: number;
     mainColorCounts: Record<string, number>;
     splashColorCounts: Record<string, number>;
@@ -22,13 +28,21 @@ const COLOR_ORDER = ["W", "U", "B", "R", "G"];
 
 function toStackedChartData(
     mainCounts: Record<string, number>,
-    splashCounts: Record<string, number>
+    splashCounts: Record<string, number>,
+    colorRates: PlayerColorWinRates["colorWinRates"]
 ) {
-    return COLOR_ORDER.map((color) => ({
-        name: color,
-        main: mainCounts[color] ?? 0,
-        splash: splashCounts[color] ?? 0,
-    }));
+    return COLOR_ORDER.map((color) => {
+        const rate = colorRates[color];
+
+        return {
+            name: color,
+            main: mainCounts[color] ?? 0,
+            splash: splashCounts[color] ?? 0,
+            winRate: rate?.winRate ?? 0,
+            gamesWon: rate?.gamesWon ?? 0,
+            gamesPlayed: rate?.gamesPlayed ?? 0,
+        }
+    });
 }
 
 async function calculateColorStats(data: DraftPlayerColors[]): Promise<PlayerColorStats[]> {
@@ -38,6 +52,7 @@ async function calculateColorStats(data: DraftPlayerColors[]): Promise<PlayerCol
         if (!players.has(entry.player_id)) {
             players.set(entry.player_id, {
                 player_name: await getPlayerNameFromId(entry.player_id),
+                player_id: entry.player_id,
                 draftsPlayed: 0,
                 mainColorCounts: {},
                 splashColorCounts: {},
@@ -75,12 +90,17 @@ export default function PlayerStats() {
 
     const [stats, setStats] = useState<PlayerColorStats[]>([]);
     const [loading, setLoading] = useState(true);
+    const [winRates, setWinRates] = useState<PlayerColorWinRates[]>([]);
 
     useEffect(() => {
         async function loadStats() {
             try {
-                const data = await getAllPlayersColors();
+                const [data, rates] = await Promise.all([
+                    getAllPlayersColors(),
+                    getPlayerColorWinRates(),
+                ])
                 setStats(await calculateColorStats(data));
+                setWinRates(rates);
             } catch (err) {
                 console.error(err);
             } finally {
@@ -102,20 +122,36 @@ export default function PlayerStats() {
                     <h2>Player Color Statistics</h2>
 
                     {stats.map((player) => {
-                        const data = toStackedChartData(
-                            player.mainColorCounts,
-                            player.splashColorCounts
+                        const playerRates = winRates.find(
+                            (rate) => rate.player_id === player.player_id
                         );
 
+                        const combinationRates = playerRates?.combinationWinRates ?? {};
+                        const colorRates = playerRates?.colorWinRates ?? {};
+
                         const combinationData = Object.entries(player.combinationCounts)
-                            .map(([name, count]) => ({
-                                name,
-                                count,
-                                colors: name.split("-").sort(
-                                    (a, b) => COLOR_ORDER.indexOf(a) - COLOR_ORDER.indexOf(b)
-                                ),
-                            }))
+                            .map(([name, count]) => {
+                                const rate = combinationRates[name];
+
+                                return {
+                                    name,
+                                    count,
+                                    colors: name.split("-").sort(
+                                        (a, b) =>
+                                            COLOR_ORDER.indexOf(a) - COLOR_ORDER.indexOf(b)
+                                    ),
+                                    winRate: rate?.winRate ?? 0,
+                                    gamesWon: rate?.gamesWon ?? 0,
+                                    gamesPlayed: rate?.gamesPlayed ?? 0,
+                                };
+                            })
                             .sort((a, b) => b.count - a.count);
+
+                        const data = toStackedChartData(
+                            player.mainColorCounts,
+                            player.splashColorCounts,
+                            colorRates
+                        );
 
                         return (
                             <section key={player.player_name}>

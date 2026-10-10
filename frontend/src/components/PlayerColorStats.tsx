@@ -7,6 +7,7 @@ import {
     YAxis,
     Tooltip,
     ResponsiveContainer,
+    CartesianGrid,
 } from "recharts";
 
 type DraftPlayerColors = {
@@ -72,7 +73,11 @@ async function calculateColorStats(data: DraftPlayerColors[]): Promise<PlayerCol
             stats.splashColorCounts[color] = (stats.splashColorCounts[color] ?? 0) + 1;
         }
 
-        const combination = [...(entry.main_colors ?? [])].sort().join("-");
+        const combination = [...(entry.main_colors ?? [])]
+            .sort(
+                (a, b) => COLOR_ORDER.indexOf(a) - COLOR_ORDER.indexOf(b)
+            )
+            .join("-");
 
         if (combination) {
             stats.combinationCounts[combination] = (stats.combinationCounts[combination] ?? 0) + 1;
@@ -118,21 +123,94 @@ export default function PlayerStats() {
                             player.splashColorCounts
                         );
 
+                        const combinationData = Object.entries(player.combinationCounts)
+                            .map(([name, count]) => ({
+                                name,
+                                count,
+                                colors: name.split("-").sort(
+                                    (a, b) => COLOR_ORDER.indexOf(a) - COLOR_ORDER.indexOf(b)
+                                ),
+                            }))
+                            .sort((a, b) => b.count - a.count);
+
                         return (
                             <section key={player.player_name}>
                                 <h3>Player: {player.player_name}</h3>
                                 <p>Drafts played: {player.draftsPlayed}</p>
 
-                                <h4>Color Combinations</h4>
-                                <ul>
-                                    {Object.entries(player.combinationCounts).map(
-                                        ([combination, count]) => (
-                                            <li key={combination}>
-                                                {combination}: {count}
-                                            </li>
-                                        )
-                                    )}
-                                </ul>
+                                <h3>Color Combinations (without splash)</h3>
+
+                                <div style={{ width: "100%", height: Math.max(300, combinationData.length * 45) }}>
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart
+                                            data={combinationData}
+                                            layout="vertical"
+                                            margin={{ top: 10, right: 35, left: 20, bottom: 10 }}
+                                        >
+                                            <CartesianGrid
+                                                strokeDasharray="3 3"
+                                                horizontal={false}
+                                            />
+
+                                            <XAxis
+                                                type="number"
+                                                allowDecimals={false}
+                                            />
+
+                                            <YAxis
+                                                type="category"
+                                                dataKey="name"
+                                                width={70}
+                                                tickFormatter={(name) => name.replaceAll("-", "")}
+                                            />
+
+                                            <Tooltip
+                                                formatter={(value) => [value, "Drafts"]}
+                                                labelFormatter={(label) =>
+                                                    `Colors: ${String(label).replaceAll("-", "")}`
+                                                }
+                                            />
+
+                                            <Bar
+                                                dataKey="count"
+                                                name="Drafts"
+                                                barSize={24}
+                                                radius={[0, 4, 4, 0]}
+                                                shape={(props) => {
+                                                    const { x, y, width, height, payload } = props;
+
+                                                    if (
+                                                        x == null ||
+                                                        y == null ||
+                                                        width == null ||
+                                                        height == null ||
+                                                        height === 0
+                                                    ) {
+                                                        return <g />;
+                                                    }
+
+                                                    const colors: string[] = payload.colors;
+                                                    const segmentWidth = width / colors.length;
+
+                                                    return (
+                                                        <g>
+                                                            {colors.map((color, index) => (
+                                                                <rect
+                                                                    key={`${payload.name}-${color}`}
+                                                                    x={x + index * segmentWidth}
+                                                                    y={y}
+                                                                    width={segmentWidth}
+                                                                    height={height}
+                                                                    fill={COLORS[color] ?? "#8884d8"}
+                                                                />
+                                                            ))}
+                                                        </g>
+                                                    );
+                                                }}
+                                            />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
 
                                 <h3>Colors</h3>
                                 <ResponsiveContainer width="100%" height={300}>

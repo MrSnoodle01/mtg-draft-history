@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import { getPlayerStats } from "../services/draftServices";
 import { useEffect, useState, useMemo } from "react";
 
@@ -18,8 +17,6 @@ type PlayerStat = {
 };
 
 export default function PlayerStatsTable() {
-    const navigate = useNavigate();
-
     const [stats, setStats] = useState<PlayerStat[]>([]);
     const [loading, setLoading] = useState(true);
 

@@ -1,5 +1,13 @@
 import { getAllPlayersColors, getPlayerNameFromId } from "../services/draftServices";
 import { useEffect, useState } from "react";
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    Tooltip,
+    ResponsiveContainer,
+} from "recharts";
 
 type DraftPlayerColors = {
     draft_id: string;
@@ -15,6 +23,28 @@ type PlayerColorStats = {
     splashColorCounts: Record<string, number>;
     combinationCounts: Record<string, number>;
 };
+
+const COLORS: Record<string, string> = {
+    W: "#F9FAF4", // White
+    U: "#4786D1", // Blue
+    B: "#383838", // Black
+    R: "#E64946", // Red
+    G: "#3B9B62", // Green
+};
+
+const COLOR_ORDER = ["W", "U", "B", "R", "G"];
+
+
+function toStackedChartData(
+    mainCounts: Record<string, number>,
+    splashCounts: Record<string, number>
+) {
+    return COLOR_ORDER.map((color) => ({
+        name: color,
+        main: mainCounts[color] ?? 0,
+        splash: splashCounts[color] ?? 0,
+    }));
+}
 
 async function calculateColorStats(data: DraftPlayerColors[]): Promise<PlayerColorStats[]> {
     const players = new Map<string, PlayerColorStats>();
@@ -82,45 +112,120 @@ export default function PlayerStats() {
                 <>
                     <h2>Player Color Statistics</h2>
 
-                    {stats.map((player) => (
-                        <section key={player.player_name}>
-                            <h3>Player: {player.player_name}</h3>
-                            <p>Drafts played: {player.draftsPlayed}</p>
+                    {stats.map((player) => {
+                        const data = toStackedChartData(
+                            player.mainColorCounts,
+                            player.splashColorCounts
+                        );
 
-                            <h4>Main Colors</h4>
-                            <ul>
-                                {Object.entries(player.mainColorCounts).map(
-                                    ([color, count]) => (
-                                        <li key={color}>
-                                            {color}: {count}
-                                        </li>
-                                    )
-                                )}
-                            </ul>
+                        return (
+                            <section key={player.player_name}>
+                                <h3>Player: {player.player_name}</h3>
+                                <p>Drafts played: {player.draftsPlayed}</p>
 
-                            <h4>Splash Colors</h4>
-                            <ul>
-                                {Object.entries(player.splashColorCounts).map(
-                                    ([color, count]) => (
-                                        <li key={color}>
-                                            {color}: {count}
-                                        </li>
-                                    )
-                                )}
-                            </ul>
+                                <h4>Color Combinations</h4>
+                                <ul>
+                                    {Object.entries(player.combinationCounts).map(
+                                        ([combination, count]) => (
+                                            <li key={combination}>
+                                                {combination}: {count}
+                                            </li>
+                                        )
+                                    )}
+                                </ul>
 
-                            <h4>Color Combinations</h4>
-                            <ul>
-                                {Object.entries(player.combinationCounts).map(
-                                    ([combination, count]) => (
-                                        <li key={combination}>
-                                            {combination}: {count}
-                                        </li>
-                                    )
-                                )}
-                            </ul>
-                        </section>
-                    ))}
+                                <h3>Colors</h3>
+                                <ResponsiveContainer width="100%" height={300}>
+                                    <BarChart data={data}>
+                                        <defs>
+                                            {Object.entries(COLORS).map(([color, fill]) => (
+                                                <pattern
+                                                    key={color}
+                                                    id={`splash-${color}`}
+                                                    patternUnits="userSpaceOnUse"
+                                                    width={6}
+                                                    height={6}
+                                                    patternTransform="rotate(45)"
+                                                >
+                                                    <rect width={6} height={6} fill="white" />
+                                                    <line
+                                                        x1={0}
+                                                        y1={0}
+                                                        x2={0}
+                                                        y2={6}
+                                                        stroke={fill}
+                                                        strokeWidth={3}
+                                                    />
+                                                </pattern>
+                                            ))}
+                                        </defs>
+
+                                        <XAxis dataKey="name" />
+                                        <YAxis allowDecimals={false} />
+                                        <Tooltip />
+
+                                        <Bar
+                                            dataKey="main"
+                                            name="Main color"
+                                            stackId="colors"
+                                            shape={(props) => {
+                                                const { x, y, width, height, payload } = props;
+
+                                                if (
+                                                    x == null ||
+                                                    y == null ||
+                                                    width == null ||
+                                                    height == null ||
+                                                    height === 0
+                                                ) {
+                                                    return <g />;
+                                                }
+
+                                                return (
+                                                    <rect
+                                                        x={x}
+                                                        y={y}
+                                                        width={width}
+                                                        height={height}
+                                                        fill={COLORS[payload.name] ?? "#8884d8"}
+                                                    />
+                                                );
+                                            }}
+                                        />
+
+                                        <Bar
+                                            dataKey="splash"
+                                            name="Splash color"
+                                            stackId="colors"
+                                            shape={(props) => {
+                                                const { x, y, width, height, payload } = props;
+
+                                                if (
+                                                    x == null ||
+                                                    y == null ||
+                                                    width == null ||
+                                                    height == null ||
+                                                    height === 0
+                                                ) {
+                                                    return <g />;
+                                                }
+
+                                                return (
+                                                    <rect
+                                                        x={x}
+                                                        y={y}
+                                                        width={width}
+                                                        height={height}
+                                                        fill={`url(#splash-${payload.name})`}
+                                                    />
+                                                );
+                                            }}
+                                        />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </section>
+                        )
+                    })}
                 </>
             )}
         </div>

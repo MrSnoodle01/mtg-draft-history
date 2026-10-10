@@ -15,6 +15,7 @@
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.15.1",
+    "recharts": "^3.10.1",
     "supabase": "^2.101.0",
     "supabase-js": "^0.0.1-security",
     "tslib": "^2.8.1"
